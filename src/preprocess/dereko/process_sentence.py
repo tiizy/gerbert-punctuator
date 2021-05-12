@@ -5,10 +5,10 @@ from src.preprocess.dereko.split_sentence import split_raw_text
 def process(sentences : list) -> list:
     """Removes unwanted characters and sentences from the list of sentences
     
-    Args: sentence (list)
-
-    Returns: regex_content (list)
-    
+    Args: 
+        sentence (list):
+    Returns: 
+        regex_content (list):
     """
     regex_content = []
     for line in sentences:

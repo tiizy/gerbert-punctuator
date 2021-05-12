@@ -8,7 +8,7 @@ def split_raw_text(raw_text: list) -> list:
     Args:
         raw_text (list):
     Returns:
-        list_sentences (list):
+        filtered_content (list):
     """
     raw_text = set(raw_text)
     raw_text = list(filter(None, raw_text))
