@@ -6,9 +6,9 @@ def process(sentences : list) -> list:
     """Removes unwanted characters and sentences from the list of sentences
     
     Args: 
-        sentence (list):
+        sentence (list): Single sentences tokenized by spacy
     Returns: 
-        regex_content (list):
+        regex_content (list): Cleaned raw text, full sentences only.
     """
     regex_content = []
     for line in sentences:

@@ -6,9 +6,9 @@ def split_raw_text(raw_text: list) -> list:
     """Splits raw text into the list of sentences.
 
     Args:
-        raw_text (list):
+        raw_text (list): Lines from a textfile from f.readlines()
     Returns:
-        filtered_content (list):
+        filtered_content (list): Single sentences tokenized by spacy
     """
     raw_text = set(raw_text)
     raw_text = list(filter(None, raw_text))
