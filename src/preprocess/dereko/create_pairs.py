@@ -20,8 +20,8 @@ def create_sentence_pairs(filtered_sentences : list) -> list:
                     pass
                 else:
                     temp_list.append(str(token))
-                no_punct_sent = " ".join(temp_list)
-            sent_pair = (sentence, no_punct_sent)
+                    no_punct_sent = " ".join(temp_list)
+            sent_pair = [str(sentence), no_punct_sent]
             paired_sentences.append(sent_pair)
 
     return paired_sentences
