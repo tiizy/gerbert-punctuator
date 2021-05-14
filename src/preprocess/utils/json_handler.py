@@ -1,7 +1,8 @@
 import json
 
+
 def save_to_json(input_data, save_path) -> str:
-    """Converts the input into JSON format.
+    """Converts the input into JSON format and saves it.
 
     Args:
         input_data:
