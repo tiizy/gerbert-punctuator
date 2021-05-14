@@ -6,9 +6,11 @@ def save_file(input_data, path, filename) -> str:
 
     Args:
         input_data (list): File with lines of text.
+        path (str): Path to the save folder.
+        filename (str): Name of the file.
     Returns:
         None
     """
-    with open(path + os.sep + filename, "w", encoding="utf8") as f:
+    with open(os.path.join(path, filename), "w", encoding="utf8") as f:
         for line in input_data:
             f.write("%s\n" % line)

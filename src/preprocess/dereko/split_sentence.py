@@ -1,5 +1,6 @@
 import re
 import spacy
+from tqdm import tqdm
 
 
 def split_raw_text(raw_text: list) -> list:
@@ -16,7 +17,7 @@ def split_raw_text(raw_text: list) -> list:
     filtered_content = []
     nlp = spacy.load("de_core_news_md")
 
-    for line in raw_text:
+    for line in tqdm(raw_text, desc="Splitting sentences"):
         doc = nlp(line)
         for sent in doc.sents:
             for token in sent:

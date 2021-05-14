@@ -1,5 +1,6 @@
 import re
 from src.preprocess.dereko.split_sentence import split_raw_text
+from tqdm import tqdm
 
 
 def process(sentences : list) -> list:
@@ -11,7 +12,7 @@ def process(sentences : list) -> list:
         regex_content (list): Cleaned raw text, full sentences only.
     """
     regex_content = []
-    for line in sentences:
+    for line in tqdm(sentences, desc="Applying Regex"):
         line = re.sub(r"^\s", "", line, flags=re.MULTILINE) #remove space at the beginning
         line = re.sub(r"^\w+\s\-\s", "", line, flags=re.MULTILINE) #remove city (newspaperlike)
         line = re.sub(r"^\w+:\s?|^[A-Z]{2,3}\s[A-Z]{2,4}:\s?", "", line, flags=re.MULTILINE) #remove speaker

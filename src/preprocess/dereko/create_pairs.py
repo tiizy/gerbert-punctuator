@@ -1,4 +1,5 @@
 import spacy
+from tqdm import tqdm
 
 def create_sentence_pairs(filtered_sentences : list) -> list:
     """Copies a sentence and removes all punctuation
@@ -11,7 +12,7 @@ def create_sentence_pairs(filtered_sentences : list) -> list:
     nlp = spacy.load("de_core_news_md")
     paired_sentences = []
 
-    for line in filtered_sentences:
+    for line in tqdm(filtered_sentences, desc="Creating pairs"):
         doc = nlp(line)
         for sentence in doc.sents:
             temp_list = []
