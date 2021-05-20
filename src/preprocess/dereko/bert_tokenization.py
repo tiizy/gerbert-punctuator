@@ -1,9 +1,6 @@
-from src.preprocess.utils.open_json import open_json_file
-import os
 from transformers.models.rag.retrieval_rag import Index
 from transformers import BertTokenizer
 
-PAIRS_JSON_PATH = os.path.join(os.getcwd(), "data", "processed", "dereko", "pairs.json")
 
 def tokenize_for_bert(sentence1, sentence2 : str) -> dict:
     """Transforms sentence-pairs into tensors.
