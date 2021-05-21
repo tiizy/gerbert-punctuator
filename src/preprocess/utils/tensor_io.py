@@ -1,36 +1,36 @@
-from pickle import load
-import torch
-from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
-from src.preprocess.dereko.bert_tokenization import tokenize_for_bert
 import os
+from tqdm import tqdm
+import numpy as np
 
 
-test_input1, test_input2 = "Peter, wie lange denn noch?", "Peter wie lange denn noch"
-test_input3, test_input4 = "Wann bist du so dumm geworden?", "Wann bist du so dumm geworden"
+def save_tensors_to_file(list_of_tensors : list, path : str) -> None:
+    os.makedirs(path, exist_ok = True)
+    input_ids = []
+    token_type_ids = []
+    attention_mask = []
+    for indx, el in enumerate(tqdm(list_of_tensors, desc="Saving tensors")):
+        input_ids.append(list_of_tensors[indx].get("input_ids"))
+        token_type_ids.append(list_of_tensors[indx].get("token_type_ids"))
+        attention_mask.append(list_of_tensors[indx].get("attention_mask"))
+    np.save(os.path.join(path, "input_ids.npy"), input_ids)
+    np.save(os.path.join(path, "token_type_ids.npy"), token_type_ids)
+    np.save(os.path.join(path, "attention_mask.npy"), attention_mask)
 
-result = tokenize_for_bert(test_input1, test_input2)
-result2 = tokenize_for_bert(test_input3, test_input4)
-list_of_results = [result, result2]
-print(list_of_results)
 
-def save_tensors_to_file(list_of_tensors : list) -> None:
-    os.makedirs(os.path.join(PROCESSED_DATA_PATH, "tensors_from_pairs"), exist_ok = True)
-    
-    for el in list_of_tensors:
-        input_ids = list_of_tensors[el]["input_ids"]
-    #token_type_ids = tensor["token_type_ids"] 
-    #attention_mask = tensor["attention_mask"]
-    #torch.save(input_ids, os.path.join(folder_path, "input_ids.pt"))
-    #torch.save(token_type_ids, os.path.join(folder_path, "token_type_ids.pt"))
-    #torch.save(attention_mask, os.path.join(folder_path, "attention_mask.pt"))
-
-def load_tensors(folder_path : str) -> torch.tensor:    
-    input_ids = torch.load(os.path.join(folder_path, "input_ids.pt"))
-    token_type_ids = torch.load(os.path.join(folder_path, "token_type_ids.pt"))
-    attention_mask = torch.load(os.path.join(folder_path, "attention_mask.pt"))
+def load_tensors(folder_path : str) -> np.array:    
+    raw_ids = np.load(os.path.join(folder_path, "input_ids.npy"))
+    input_ids = []
+    for el in raw_ids:
+        for i in el:
+            input_ids.append(i)
+    raw_token_type_ids = np.load(os.path.join(folder_path, "token_type_ids.npy"))
+    token_type_ids = []
+    for el in raw_token_type_ids:
+        for i in el:
+            token_type_ids.append(i)
+    raw_attention_mask = np.load(os.path.join(folder_path, "attention_mask.npy"))
+    attention_mask = []
+    for el in raw_attention_mask:
+        for i in el:
+            attention_mask.append(i)
     return input_ids, token_type_ids, attention_mask
-
-
-# for el in list_of_results:
-#     save_tensors_to_file(el, os.path.join(PROCESSED_DATA_PATH, "test"))
-#     print(load_tensors(os.path.join(PROCESSED_DATA_PATH, "test")))
