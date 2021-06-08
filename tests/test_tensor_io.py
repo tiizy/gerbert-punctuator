@@ -19,7 +19,7 @@ def test_save_load_tensors():
 
     save_tensors_to_file(list_of_results, os.path.join(PROCESSED_DATA_PATH, "test_save"))
     input_ids, token_type_ids, attention_mask = load_tensors(os.path.join(PROCESSED_DATA_PATH, "test_save"))
-    tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
+    tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased")
     list_of_loaded = []
     for el in input_ids:
         result = tokenizer.decode(el, skip_special_tokens = True)

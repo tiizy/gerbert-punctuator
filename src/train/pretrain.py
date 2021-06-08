@@ -6,7 +6,6 @@ from transformers import BertTokenizer
 from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
 from src.preprocess.utils.json_handler import open_json_file
 import os
-from tqdm import tqdm
 from torch import optim
 
 
@@ -21,7 +20,6 @@ def trainBert():
     pairs_path = os.path.join(PROCESSED_DATA_PATH, "pairs.json")
     file_content = open_json_file(pairs_path)
     optimizer = optim.Adam(params=bert2bert.parameters(), lr=0.001) #params = iterable of parameters to optimize, default betas work well
-    pbar = tqdm(total = 100)
     for idx in range(100):
        sentence1 = file_content[idx][0]
        sentence2 = file_content[idx][1]
@@ -33,7 +31,6 @@ def trainBert():
        loss = bert2bert(input_ids=input_ids, decoder_input_ids=labels, labels=labels).loss
        loss.backward()
        optimizer.step()
-       pbar.update(1)
-    pbar.close()
+       print(loss)
 
 trainBert()
