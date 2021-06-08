@@ -3,13 +3,13 @@ import re
 
 
 def open_files(path, extension) -> str:
-    """Converts the input into JSON format and saves it.
+    """Opens a file with specified extension.
 
     Args:
         path (str): Path to the folder.
         extension (str): File-extension to look for inside the folder. 
     Returns:
-        content (str): The content of the files.
+        content (list): The content of the files.
     """
     filenames = os.listdir(path)
     files = []
