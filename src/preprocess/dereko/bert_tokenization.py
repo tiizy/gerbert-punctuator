@@ -19,4 +19,7 @@ def tokenize_for_bert(sentence1, sentence2 : str) -> dict:
         return_attention_mask = True,
         return_tensors = "np"  # ask the function to return PyTorch tensors
     )
+    print(encoded)
     return encoded
+
+tokenize_for_bert("Test", "Test2")

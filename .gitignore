@@ -139,3 +139,6 @@ cython_debug/
 
 # processed data files
 data/processed
+
+# pytorch example data
+src/pytorch_example_classifier/data
