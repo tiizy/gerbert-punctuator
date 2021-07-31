@@ -1,12 +1,19 @@
+import os
+from src.preprocess.utils.json_handler import save_to_json
+from src.preprocess.dereko.assign_tokenid_punct import assign_id
 from src.preprocess.dereko.generate_pairs_bert_classification import create_classification_pairs
-from src.preprocess.utils.open_file_extension import open_files
 from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
-from src.preprocess.utils.save_single_file import save_file
 
 
 def main():
-    file_content = open_files(PROCESSED_DATA_PATH, "txt")
-    pairs = create_classification_pairs(file_content)
-    save_file(pairs, PROCESSED_DATA_PATH, "classification_pairs.txt")    
+    f = open(os.path.join(PROCESSED_DATA_PATH, "single_sentences.txt"), "r", encoding="utf8")
+    file_content = f.readlines()
+    f.close()
+    list_x, list_y = create_classification_pairs(file_content)
+    list_y = assign_id(list_y)
+    result_list = []
+    for i in range(len(list_x)):
+        result_list.append({'X': list_x[i], 'y':list_y[i]})
+    save_to_json(result_list, os.path.join(PROCESSED_DATA_PATH, "classification_pairs.json"))
 
 main()
