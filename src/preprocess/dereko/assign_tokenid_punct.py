@@ -10,12 +10,13 @@ def assign_id(list_y : list) -> list:
         list_id (list): Pair y with tokenIDs instead of strings.
     """
     list_id = []
-    ignored_chars = ['[', ']', '%', '@', '&', '#']
+    ignored_chars = ['[', ']', '%', '@', '&', '#', '/']
 
     for punct in tqdm(list_y, desc="Assigning token IDs"):
         if punct in ignored_chars:
             list_id.append(0)
         for id, string in PUNCTUATION_TOKEN_ID.items():
-            if string == punct:
+            if punct == string:
                 list_id.append(id)
+
     return list_id

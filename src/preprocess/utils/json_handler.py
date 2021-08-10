@@ -10,7 +10,7 @@ def save_to_json(input_data, save_path) -> str:
     Returns:
         None
     """
-    with open(save_path, 'w', encoding='utf-8') as f:
+    with open(save_path, 'w', encoding='utf8') as f:
         json.dump(input_data, f, ensure_ascii=False)
 
 def open_json_file(path) -> str:
@@ -21,6 +21,6 @@ def open_json_file(path) -> str:
     Returns:
         content (str): The content of the file.
     """
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf8") as f:
         file_content = json.load(f)
     return file_content
