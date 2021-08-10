@@ -14,6 +14,7 @@ def main():
     result_list = []
     for i in range(len(list_y)):
         result_list.append({'X': list_x[i], 'y':list_y[i]})
+    print(result_list)
     save_to_json(result_list, os.path.join(PROCESSED_DATA_PATH, "classification_pairs.json_new"))
 
 main()
