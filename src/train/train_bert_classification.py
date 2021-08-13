@@ -16,11 +16,11 @@ def format_time(elapsed):
     # Format as hh:mm:ss
     return str(datetime.timedelta(seconds=elapsed_rounded))
 
-# Function to calculate the accuracy of our predictions vs labels
-def flat_accuracy(preds, labels):
+# Function to calculate the accuracy of our predictions vs punctuation_ids
+def flat_accuracy(preds, punctuation_ids):
     pred_flat = np.argmax(preds, axis=1).flatten()
-    labels_flat = labels.flatten()
-    return np.sum(pred_flat == labels_flat) / len(labels_flat)
+    punctuation_ids_flat = punctuation_ids.flatten()
+    return np.sum(pred_flat == punctuation_ids_flat) / len(punctuation_ids_flat)
 
 
 
@@ -30,7 +30,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     # linear classification layer on top. 
     model = BertForTokenClassification.from_pretrained(
         "bert-base-german-cased", # Use the German BERT model, with an cased vocab. More information here: https://www.deepset.ai/german-bert
-        num_labels = 12, # The number of output labels--12, multi-class task.   
+        num_punctuation_ids = 12, # The number of output punctuation_ids--12, multi-class task.   
         output_attentions = False, # Whether the model returns attentions weights.
         output_hidden_states = False, # Whether the model returns all hidden-states.
     )
@@ -38,6 +38,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     if torch.cuda.is_available():    
     # Tell PyTorch to use the GPU.    
         device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
 
     # Tell pytorch to run this model on the GPU.
     model.cuda()
@@ -140,12 +142,12 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
             # It returns different numbers of parameters depending on what arguments
             # arge given and what flags are set. For our useage here, it returns
-            # the loss (because we provided labels) and the "logits"--the model
+            # the loss (because we provided punctuation_ids) and the "logits"--the model
             # outputs prior to activation.
             loss, logits = model(b_input_ids, 
-                                token_type_ids=None, 
-                                attention_mask=b_input_mask, 
-                                labels=b_punctuation_ids)
+                                token_type_ids = None, 
+                                attention_mask = b_input_mask, 
+                                punctuation_ids = b_punctuation_ids)
 
             # Accumulate the training loss over all of the batches so that we can
             # calculate the average loss at the end. `loss` is a Tensor containing a
@@ -209,10 +211,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # `batch` contains three pytorch tensors:
             #   [0]: input ids 
             #   [1]: attention masks
-            #   [2]: labels 
+            #   [2]: punctuation_ids 
             b_input_ids = batch[0].to(device)
             b_input_mask = batch[1].to(device)
-            b_labels = batch[2].to(device)
+            b_punctuation_ids = batch[2].to(device)
             
             # Tell pytorch not to bother with constructing the compute graph during
             # the forward pass, since this is only needed for backprop (training).
@@ -228,18 +230,18 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 (loss, logits) = model(b_input_ids, 
                                     token_type_ids=None, 
                                     attention_mask=b_input_mask,
-                                    labels=b_labels)
+                                    labels=b_punctuation_ids)
                 
             # Accumulate the validation loss.
             total_eval_loss += loss.item()
 
-            # Move logits and labels to CPU
+            # Move logits and punctuation_ids to CPU
             logits = logits.detach().cpu().numpy()
-            label_ids = b_labels.to('cpu').numpy()
+            punctuation_ids = b_punctuation_ids.to('cpu').numpy()
 
             # Calculate the accuracy for this batch of test sentences, and
             # accumulate it over all batches.
-            total_eval_accuracy += flat_accuracy(logits, label_ids)
+            total_eval_accuracy += flat_accuracy(logits, punctuation_ids)
             
 
         # Report the final accuracy for this validation run.
