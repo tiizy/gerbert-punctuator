@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased", do_lower_case = False)
 
-def tokenize_for_bert(pairs : dict) -> torch.tensor:
+def tokenize_for_bert(pairs : dict) -> torch.Tensor:
     """Transforms sentence-pairs into tensors.
     Args: 
         pairs: Pairs of sentences with <PUNCT>-marker and token IDs as y.

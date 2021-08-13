@@ -6,7 +6,7 @@ import torch
 
 
 
-def split_train_validate(input_ids, attention_masks, punctuation_ids) -> TensorDataset:
+def split_train_validate(input_ids, attention_masks, punctuation_ids : torch.Tensor) -> TensorDataset:
     """Creates a train-validation split.
     Args: 
         input_ids: Tensors with tokenized sentences with special tokens and padding.
