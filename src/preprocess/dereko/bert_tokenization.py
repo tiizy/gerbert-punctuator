@@ -37,8 +37,8 @@ def tokenize_for_bert(pairs : dict) -> torch.Tensor:
         return_tensors = "pt" # ask the function to return PyTorch tensors
     )
         input_ids.append(encoded["input_ids"])
-        punctuation_ids.append(el["y"])
         attention_masks.append(encoded["attention_mask"])
+        punctuation_ids.append(el["y"])
     
     # Convert the lists into tensors
     input_ids = torch.cat(input_ids, dim=0)

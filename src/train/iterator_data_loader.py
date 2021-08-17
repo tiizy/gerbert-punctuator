@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
-def split_train_validate(train_dataset, val_dataset) -> DataLoader:
-    """Creates a train-validation split.
+def load_data(train_dataset, val_dataset) -> DataLoader:
+    """Effectively iterates through datasets.
     Args: 
         train_dataset: Dataset for training.
         val_dataset: Dataset for validation

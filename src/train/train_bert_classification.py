@@ -6,6 +6,11 @@ from transformers import BertForTokenClassification, AdamW, BertConfig
 from transformers import get_linear_schedule_with_warmup
 import torch
 
+import os
+from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
+from src.train.iterator_data_loader import load_data
+
+
 def format_time(elapsed):
     '''
     Takes a time in seconds and returns a string hh:mm:ss
@@ -30,7 +35,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     # linear classification layer on top. 
     model = BertForTokenClassification.from_pretrained(
         "bert-base-german-cased", # Use the German BERT model, with an cased vocab. More information here: https://www.deepset.ai/german-bert
-        num_punctuation_ids = 12, # The number of output punctuation_ids--12, multi-class task.   
+        num_labels = 12, # The number of output punctuation_ids--12, multi-class task.   
         output_attentions = False, # Whether the model returns attentions weights.
         output_hidden_states = False, # Whether the model returns all hidden-states.
     )
@@ -42,7 +47,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         device = torch.device("cpu")
 
     # Tell pytorch to run this model on the GPU.
-    model.cuda()
+    #model.cuda()
+    # Tell pytorch to run this model on the available device.
+    model.to(device)
 
     # Note: AdamW is a class from the huggingface library (as opposed to pytorch) 
     # I believe the 'W' stands for 'Weight Decay fix"
@@ -120,7 +127,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
             # Unpack this training batch from our dataloader. 
             #
-            # As we unpack the batch, we'll also copy each tensor to the GPU using the 
+            # As we unpack the batch, we'll also copy each tensor to the CPU or GPU using the 
             # `to` method.
             #
             # `batch` contains three pytorch tensors:
@@ -129,7 +136,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             #   [2]: punctuation ids 
             b_input_ids = batch[0].to(device)
             b_input_mask = batch[1].to(device)
-            b_punctuation_ids = batch[2].to(device)
+            b_punctuation_ids = batch[2].resize_(batch[2].size(0),b_input_ids.size(1)) #punct_ids had to resized to be the same size as other tensors
+            #b_punctuation_ids = batch[2].resize_(32,122) #punct_ids had to resized to be the same size as other tensors
+            b_punctuation_ids = b_punctuation_ids.to(device)
 
             # Always clear any previously calculated gradients before performing a
             # backward pass. PyTorch doesn't do this automatically because 
@@ -139,24 +148,25 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
             # Perform a forward pass (evaluate the model on this training batch).
             # The documentation for this `model` function is here: 
-            # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
+            # https://huggingface.co/transformers/model_doc/bert.html#bertfortokenclassification
             # It returns different numbers of parameters depending on what arguments
             # arge given and what flags are set. For our useage here, it returns
-            # the loss (because we provided punctuation_ids) and the "logits"--the model
+            # the loss (because we provided labels) and the "logits"--the model
             # outputs prior to activation.
-            loss, logits = model(b_input_ids, 
+            print(step)
+            model_out = model.forward(input_ids = b_input_ids, 
                                 token_type_ids = None, 
                                 attention_mask = b_input_mask, 
-                                punctuation_ids = b_punctuation_ids)
+                                labels = b_punctuation_ids)
 
             # Accumulate the training loss over all of the batches so that we can
             # calculate the average loss at the end. `loss` is a Tensor containing a
             # single value; the `.item()` function just returns the Python value 
             # from the tensor.
-            total_train_loss += loss.item()
+            total_train_loss += model_out.loss.item()
 
             # Perform a backward pass to calculate the gradients.
-            loss.backward()
+            model_out.loss.backward()
 
             # Clip the norm of the gradients to 1.0.
             # This is to help prevent the "exploding gradients" problem.
@@ -205,7 +215,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             
             # Unpack this training batch from our dataloader. 
             #
-            # As we unpack the batch, we'll also copy each tensor to the GPU using 
+            # As we unpack the batch, we'll also copy each tensor to the CPU or GPU using 
             # the `to` method.
             #
             # `batch` contains three pytorch tensors:
@@ -227,21 +237,21 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
                 # Get the "logits" output by the model. The "logits" are the output
                 # values prior to applying an activation function like the softmax.
-                (loss, logits) = model(b_input_ids, 
+                model_out = model(b_input_ids, 
                                     token_type_ids=None, 
                                     attention_mask=b_input_mask,
                                     labels=b_punctuation_ids)
                 
             # Accumulate the validation loss.
-            total_eval_loss += loss.item()
+            total_eval_loss += model_out.loss.item()
 
             # Move logits and punctuation_ids to CPU
-            logits = logits.detach().cpu().numpy()
+            logits = model_out.logits.detach().cpu().numpy()
             punctuation_ids = b_punctuation_ids.to('cpu').numpy()
 
             # Calculate the accuracy for this batch of test sentences, and
             # accumulate it over all batches.
-            total_eval_accuracy += flat_accuracy(logits, punctuation_ids)
+            total_eval_accuracy += flat_accuracy(model_out.logits, punctuation_ids)
             
 
         # Report the final accuracy for this validation run.
@@ -272,3 +282,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("Training complete!")
 
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
+
+# executing training
+train_path = os.path.join(PROCESSED_DATA_PATH, "tensors", "datasets", "training_data.pt")
+val_path = os.path.join(PROCESSED_DATA_PATH, "tensors", "datasets", "validation_data.pt")
+train_data = torch.load(train_path)
+val_data = torch.load(val_path)
+train_dataloader, validation_dataloader = load_data(train_data, val_data)
+trainBertClassification(train_dataloader, validation_dataloader)
