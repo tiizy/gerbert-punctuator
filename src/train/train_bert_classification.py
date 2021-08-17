@@ -2,7 +2,7 @@ import numpy as np
 import time
 import datetime
 import random
-from transformers import BertForTokenClassification, AdamW, BertConfig
+from transformers import BertForSequenceClassification, AdamW, BertConfig
 from transformers import get_linear_schedule_with_warmup
 import torch
 
@@ -33,12 +33,15 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
     # Load BertForTokenClassification, the pretrained BERT model with a single 
     # linear classification layer on top. 
-    model = BertForTokenClassification.from_pretrained(
+    #model = BertForTokenClassification.from_pretrained('bert-base-german-cased')
+    
+    model = BertForSequenceClassification.from_pretrained(
         "bert-base-german-cased", # Use the German BERT model, with an cased vocab. More information here: https://www.deepset.ai/german-bert
         num_labels = 12, # The number of output punctuation_ids--12, multi-class task.   
         output_attentions = False, # Whether the model returns attentions weights.
         output_hidden_states = False, # Whether the model returns all hidden-states.
     )
+    #print(model.parameters)
     # If there's a GPU available...
     if torch.cuda.is_available():    
     # Tell PyTorch to use the GPU.    
@@ -115,7 +118,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         model.train()
 
         # For each batch of training data...
+        print("Total steps in one epoch: " + str(len(train_dataloader)))
         for step, batch in enumerate(train_dataloader):
+            
 
             # Progress update every 40 batches.
             if step % 40 == 0 and not step == 0:
@@ -136,9 +141,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             #   [2]: punctuation ids 
             b_input_ids = batch[0].to(device)
             b_input_mask = batch[1].to(device)
-            b_punctuation_ids = batch[2].resize_(batch[2].size(0),b_input_ids.size(1)) #punct_ids had to resized to be the same size as other tensors
-            #b_punctuation_ids = batch[2].resize_(32,122) #punct_ids had to resized to be the same size as other tensors
-            b_punctuation_ids = b_punctuation_ids.to(device)
+            b_punctuation_ids = batch[2].to(device)
+            #b_punctuation_ids = batch[2].resize_(batch[2].size(0),b_input_ids.size(1)) #punct_ids had to resized to be the same size as other tensors
+            #b_punctuation_ids = b_punctuation_ids.to(device)
 
             # Always clear any previously calculated gradients before performing a
             # backward pass. PyTorch doesn't do this automatically because 
@@ -154,7 +159,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # the loss (because we provided labels) and the "logits"--the model
             # outputs prior to activation.
             print(step)
-            model_out = model.forward(input_ids = b_input_ids, 
+            model_out = model(input_ids = b_input_ids, 
                                 token_type_ids = None, 
                                 attention_mask = b_input_mask, 
                                 labels = b_punctuation_ids)
