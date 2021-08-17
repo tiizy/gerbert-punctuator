@@ -130,6 +130,12 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 # Report progress.
                 print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
 
+            #Save model every 1000 steps
+            if step % 1000 == 0 and not step == 0:
+                model.eval()
+                torch.save(model.state_dict(), os.path.join(PROCESSED_DATA_PATH, "models", "epoch{:}_model.pt".format(epoch_i + 1)))
+                model.train()
+
             # Unpack this training batch from our dataloader. 
             #
             # As we unpack the batch, we'll also copy each tensor to the CPU or GPU using the 
@@ -209,6 +215,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         # Put the model in evaluation mode--the dropout layers behave differently
         # during evaluation.
         model.eval()
+
+        # Save the current state
+        torch.save(model.state_dict(), os.path.join(PROCESSED_DATA_PATH, "models", "trained_model.pt"))
 
         # Tracking variables 
         total_eval_accuracy = 0
