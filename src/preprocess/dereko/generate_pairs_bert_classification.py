@@ -8,7 +8,7 @@ from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
 nlp = spacy.load("de_core_news_md")
 
 def create_classification_pairs(list_sentences : list) -> list:
-    """Prepares list of single sentences for classification task
+    """Prepared list of single sentences for classification task
 
     Args:
         list_sentences (list): Cleaned full sentence

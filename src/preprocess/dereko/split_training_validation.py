@@ -35,10 +35,10 @@ def split_train_validate(input_ids, attention_masks, punctuation_ids : torch.Ten
     return train_dataset, val_dataset
 
 
-load_path = os.path.join(PROCESSED_DATA_PATH, "tensors")
-input_ids = torch.load(os.path.join(load_path, "input_ids.pt"))
-attention_masks = torch.load(os.path.join(load_path, "attention_masks.pt"))
-punctuation_ids = torch.load(os.path.join(load_path, "punctuation_ids.pt"))
+load_path = os.path.join(PROCESSED_DATA_PATH, "test_tensors")
+input_ids = torch.load(os.path.join(load_path, "test_input_ids.pt"))
+attention_masks = torch.load(os.path.join(load_path, "test_attention_masks.pt"))
+punctuation_ids = torch.load(os.path.join(load_path, "test_punctuation_ids.pt"))
 train_dataset, val_dataset = split_train_validate(input_ids, attention_masks, punctuation_ids)
-torch.save(train_dataset, os.path.join(load_path, "datasets", "training_data.pt"))
-torch.save(val_dataset, os.path.join(load_path, "datasets", "validation_data.pt"))
+torch.save(train_dataset, os.path.join(load_path, "test_datasets", "training_data.pt"))
+torch.save(val_dataset, os.path.join(load_path, "test_datasets", "validation_data.pt"))

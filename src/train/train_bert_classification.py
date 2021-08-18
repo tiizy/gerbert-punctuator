@@ -23,7 +23,7 @@ def format_time(elapsed):
 
 # Function to calculate the accuracy of our predictions vs punctuation_ids
 def flat_accuracy(preds, punctuation_ids):
-    pred_flat = np.argmax(preds, axis=1).flatten()
+    pred_flat = np.argmax(preds.cpu(), axis=1).flatten()
     punctuation_ids_flat = punctuation_ids.flatten()
     return np.sum(pred_flat == punctuation_ids_flat) / len(punctuation_ids_flat)
 
@@ -164,7 +164,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # arge given and what flags are set. For our useage here, it returns
             # the loss (because we provided labels) and the "logits"--the model
             # outputs prior to activation.
-            print(step)
+            #print(step)
             model_out = model(input_ids = b_input_ids, 
                                 token_type_ids = None, 
                                 attention_mask = b_input_mask, 
@@ -199,7 +199,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         print("")
         print("  Average training loss: {0:.2f}".format(avg_train_loss))
-        print("  Training epcoh took: {:}".format(training_time))
+        print("  Training epoсh took: {:}".format(training_time))
             
         # ========================================
         #               Validation
@@ -298,8 +298,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
 
 # executing training
-train_path = os.path.join(PROCESSED_DATA_PATH, "tensors", "datasets", "training_data.pt")
-val_path = os.path.join(PROCESSED_DATA_PATH, "tensors", "datasets", "validation_data.pt")
+train_path = os.path.join(PROCESSED_DATA_PATH, "test_tensors", "test_datasets", "training_data.pt")
+val_path = os.path.join(PROCESSED_DATA_PATH, "test_tensors", "test_datasets", "validation_data.pt")
 train_data = torch.load(train_path)
 val_data = torch.load(val_path)
 train_dataloader, validation_dataloader = load_data(train_data, val_data)
