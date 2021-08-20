@@ -3,8 +3,6 @@ import os
 from src.preprocess.utils.open_file_extension import open_files
 from src.preprocess.dereko.split_sentence import split_raw_text
 from src.preprocess.dereko.process_sentence import process
-from src.preprocess.dereko.create_pairs import create_sentence_pairs
-from src.preprocess.utils.json_handler import save_to_json
 from src.preprocess.utils.save_single_file import save_file
 
 
@@ -17,8 +15,6 @@ def main():
     splitted_sentences = split_raw_text(content)
     processed = process(splitted_sentences)
     save_file(processed, PROCESSED_DATA_PATH, "single_sentences.txt")
-    pairs = create_sentence_pairs(processed)
-    save_to_json(pairs, os.path.join(PROCESSED_DATA_PATH, "pairs.json"))
 
 if __name__ == "__main__":
     main()
