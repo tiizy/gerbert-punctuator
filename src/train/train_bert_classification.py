@@ -2,7 +2,7 @@ import numpy as np
 import time
 import datetime
 import random
-from transformers import BertForSequenceClassification, AdamW, BertConfig
+from transformers import BertForSequenceClassification, AdamW
 from transformers import get_linear_schedule_with_warmup
 import torch
 
@@ -298,8 +298,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
 
 # executing training
-train_path = os.path.join(PROCESSED_DATA_PATH, "test_tensors", "test_datasets", "training_data.pt")
-val_path = os.path.join(PROCESSED_DATA_PATH, "test_tensors", "test_datasets", "validation_data.pt")
+train_path = os.path.join(os.getcwd(), "data", "models", "tensors", "datasets", "training_data.pt")
+val_path = os.path.join(os.getcwd(), "data", "models", "tensors", "datasets", "validation_data.pt")
 train_data = torch.load(train_path)
 val_data = torch.load(val_path)
 train_dataloader, validation_dataloader = load_data(train_data, val_data)
