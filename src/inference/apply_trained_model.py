@@ -82,11 +82,12 @@ def main(test_sentences):
                 break
     test_sent.remove("<PUNCT>")
     test_sent = " ".join(test_sent)
-    {0:"None", 1:",", 2:".", 3:"!", 4:"?", 5:";", 6:"'", 7:'"', 8:"(", 9:")", 10:":", 11:"-"}
-    test_sent = re.sub(r'\s([\,\.\!\?\;\'\"\(\)\:\\-](?:\s|$))', r'\1', test_sent)
+    test_sent = re.sub(r'\s([\,\.\!\?\;\'\"\(\)\:\-](?:\s|$))', r'\1', test_sent)
     return test_sent
          
 
-test_sentences = ["Weil viele der Opfer durch die Explosion am Donnerstag zerfetzt worden seien oder noch nicht identifiziert werden konnten sei es nicht klar wann man Gewissheit über die endgültige Opferzahl haben werde sagten die Quellen"]
+test_sentences = ["Im Kaufhaus kaufen viele dem Kaufrausch verfallene kaufsüchtige Käufer bei eisiger Kälte kaufenswerte Kaufsachen von den vom Winterschlussverkauf genervten Verkäufern zum Benutzen der kaufbaren Kaufwaren in der Mitte der vom Winterschlussverkauf genervten Käufer"]
 result = main(test_sentences)
+print('')
 print(result)
+print('')
