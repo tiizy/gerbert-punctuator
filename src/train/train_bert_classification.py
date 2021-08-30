@@ -5,6 +5,7 @@ import random
 from transformers import BertForSequenceClassification, AdamW
 from transformers import get_linear_schedule_with_warmup
 import torch
+from torch.utils.tensorboard import SummaryWriter #SummaryWriter: key element to TensorBoard
 
 import os
 from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
@@ -92,6 +93,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     # Measure the total training time for the whole run.
     total_t0 = time.time()
 
+    # specify a folder for the TensorBoard-writer
+    writer = SummaryWriter('src/train/training_logs/')
+
     # For each epoch...
     for epoch_i in range(0, epochs):
         
@@ -176,6 +180,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # from the tensor.
             total_train_loss += model_out.loss.item()
 
+            #log loss
+            writer.add_scalar("Loss/train", total_train_loss, step)
+
             # Perform a backward pass to calculate the gradients.
             model_out.loss.backward()
 
@@ -191,8 +198,12 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # Update the learning rate.
             scheduler.step()
 
+
         # Calculate the average loss over all of the batches.
-        avg_train_loss = total_train_loss / len(train_dataloader)            
+        avg_train_loss = total_train_loss / len(train_dataloader)
+
+        # add average loss to TB
+        writer.add_scalar('average_training_loss', avg_train_loss, step)            
         
         # Measure how long this epoch took.
         training_time = format_time(time.time() - t0)
@@ -259,6 +270,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # Accumulate the validation loss.
             total_eval_loss += model_out.loss.item()
 
+            #log evaluation loss in TB
+            writer.add_scalar('total_evaluation_loss', total_eval_loss, epoch_i * len(validation_dataloader))
+
             # Move logits and punctuation_ids to CPU
             logits = model_out.logits.detach().cpu().numpy()
             punctuation_ids = b_punctuation_ids.to('cpu').numpy()
@@ -270,10 +284,14 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         # Report the final accuracy for this validation run.
         avg_val_accuracy = total_eval_accuracy / len(validation_dataloader)
+        # log final accuracy
+        writer.add_scalar('final_accuracy', avg_val_accuracy)
         print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
 
         # Calculate the average loss over all of the batches.
         avg_val_loss = total_eval_loss / len(validation_dataloader)
+        # log final loss
+        writer.add_scalar('final_accuracy', avg_val_loss)
         
         # Measure how long the validation run took.
         validation_time = format_time(time.time() - t0)
@@ -296,6 +314,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("Training complete!")
 
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
+        with open("/src/train/training_logs/manual_log.txt") as f:
+            f.writelines(training_stats)
 
 # executing training
 train_path = os.path.join(os.getcwd(), "data", "models", "tensors", "datasets", "training_data.pt")
