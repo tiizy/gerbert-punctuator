@@ -6,6 +6,7 @@ from transformers import BertForSequenceClassification, AdamW
 from transformers import get_linear_schedule_with_warmup
 import torch
 from torch.utils.tensorboard import SummaryWriter #SummaryWriter: key element to TensorBoard
+from src.preprocess.utils.json_handler import save_to_json
 
 import os
 from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
@@ -200,10 +201,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
 
         # Calculate the average loss over all of the batches.
-        avg_train_loss = total_train_loss / len(train_dataloader)
-
-        # add average loss to TB
-        writer.add_scalar('average_training_loss', avg_train_loss, step)            
+        avg_train_loss = total_train_loss / len(train_dataloader)        
         
         # Measure how long this epoch took.
         training_time = format_time(time.time() - t0)
@@ -284,8 +282,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         # Report the final accuracy for this validation run.
         avg_val_accuracy = total_eval_accuracy / len(validation_dataloader)
-        # log final accuracy
-        writer.add_scalar('final_accuracy', avg_val_accuracy)
+
         print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
 
         # Calculate the average loss over all of the batches.
@@ -314,12 +311,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("Training complete!")
 
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
-        with open("/src/train/training_logs/manual_log.txt") as f:
-            f.writelines(training_stats)
+        save_to_json(training_stats, "src/train/training_logs/manual_log.json")
 
 # executing training
-train_path = os.path.join(os.getcwd(), "data", "models", "tensors", "datasets", "training_data.pt")
-val_path = os.path.join(os.getcwd(), "data", "models", "tensors", "datasets", "validation_data.pt")
+train_path = os.path.join(os.getcwd(), "data", "processed", "tensors", "training_data.pt")
+val_path = os.path.join(os.getcwd(), "data", "processed", "tensors", "validation_data.pt")
 train_data = torch.load(train_path)
 val_data = torch.load(val_path)
 train_dataloader, validation_dataloader = load_data(train_data, val_data)
