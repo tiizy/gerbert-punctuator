@@ -4,7 +4,7 @@ import os
 from collections import Counter
 
 
-def count_punct_types(pairs: dict) -> dict:
+def count_punct_types(pairs: dict):
     list_of_punctuation = []
     for pair in pairs:
         list_of_punctuation.append(pair['y'])
