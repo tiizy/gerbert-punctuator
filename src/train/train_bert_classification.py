@@ -39,7 +39,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     
     model = BertForSequenceClassification.from_pretrained(
         "bert-base-german-cased", # Use the German BERT model, with an cased vocab. More information here: https://www.deepset.ai/german-bert
-        num_labels = 12, # The number of output punctuation_ids--12, multi-class task.   
+        num_labels = 9, # The number of output punctuation_ids--9, multi-class task.   
         output_attentions = False, # Whether the model returns attentions weights.
         output_hidden_states = False, # Whether the model returns all hidden-states.
     )

@@ -145,3 +145,6 @@ data/models
 
 # pytorch example data
 src/pytorch_example_classifier/data
+
+# logs
+src/train/training_logs

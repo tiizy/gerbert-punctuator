@@ -40,7 +40,7 @@ def apply_model(test_sentence, list_y):
 
     model = BertForSequenceClassification.from_pretrained(
         "bert-base-german-cased",
-        num_labels = 12, # The number of output punctuation_ids--12, multi-class task.   
+        num_labels = 9, # The number of output punctuation_ids--9, multi-class task.   
         output_attentions = False, # Whether the model returns attentions weights.
         output_hidden_states = False, # Whether the model returns all hidden-states.
         )
@@ -86,7 +86,7 @@ def main(test_sentences):
     return test_sent
          
 
-test_sentences = ["Im Kaufhaus kaufen viele dem Kaufrausch verfallene kaufsüchtige Käufer bei eisiger Kälte kaufenswerte Kaufsachen von den vom Winterschlussverkauf genervten Verkäufern zum Benutzen der kaufbaren Kaufwaren in der Mitte der vom Winterschlussverkauf genervten Käufer"]
+test_sentences = [""]
 result = main(test_sentences)
 print('')
 print(result)
