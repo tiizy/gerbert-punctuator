@@ -2,11 +2,16 @@ import numpy as np
 import time
 import datetime
 import random
+from numpy.lib.function_base import average
+from torchmetrics.classification.accuracy import Accuracy
+from torchmetrics.text import bert
 from transformers import BertForSequenceClassification, AdamW
 from transformers import get_linear_schedule_with_warmup
 import torch
 from torch.utils.tensorboard import SummaryWriter #SummaryWriter: key element to TensorBoard
 from src.preprocess.utils.json_handler import save_to_json
+from src.train.model_wrapper import ModelWrapper
+import torchmetrics
 
 import os
 from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
@@ -25,7 +30,7 @@ def format_time(elapsed):
 
 # Function to calculate the accuracy of our predictions vs punctuation_ids
 def flat_accuracy(preds, punctuation_ids):
-    pred_flat = np.argmax(preds.cpu(), axis=1).flatten()
+    pred_flat = np.argmax(preds.detach().numpy(), axis=1).flatten()
     punctuation_ids_flat = punctuation_ids.flatten()
     return np.sum(pred_flat == punctuation_ids_flat) / len(punctuation_ids_flat)
 
@@ -97,6 +102,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     # specify a folder for the TensorBoard-writer
     writer = SummaryWriter('src/train/training_logs/')
 
+    #initialize torchmetrics
+    acc = torchmetrics.Accuracy(num_classes=9, average="micro")
+    prec = torchmetrics.AveragePrecision(num_classes=9)
+    f1 = torchmetrics.F1(num_classes=9, average="micro")
+
     # For each epoch...
     for epoch_i in range(0, epochs):
         
@@ -126,7 +136,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("Total steps in one epoch: " + str(len(train_dataloader)))
         for step, batch in enumerate(train_dataloader):
             
-
             # Progress update every 40 batches.
             if step % 40 == 0 and not step == 0:
                 # Calculate elapsed time in minutes.
@@ -181,9 +190,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # from the tensor.
             total_train_loss += model_out.loss.item()
 
-            #log loss
-            writer.add_scalar("Loss/train", total_train_loss, step)
-
             # Perform a backward pass to calculate the gradients.
             model_out.loss.backward()
 
@@ -198,6 +204,15 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
             # Update the learning rate.
             scheduler.step()
+
+            #log training loss
+            writer.add_scalar("Training loss", model_out.loss.item(), global_step = step)
+            #log training accuracy
+            writer.add_scalar("Training accuracy", flat_accuracy(model_out.logits, b_punctuation_ids), global_step = step)
+            accuracy = acc(model_out.logits, b_punctuation_ids)
+            precision = prec(model_out.logits, b_punctuation_ids)
+            f1_score = f1(model_out.logits, b_punctuation_ids)
+            
 
 
         # Calculate the average loss over all of the batches.
@@ -268,8 +283,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # Accumulate the validation loss.
             total_eval_loss += model_out.loss.item()
 
-            #log evaluation loss in TB
-            writer.add_scalar('total_evaluation_loss', total_eval_loss, epoch_i * len(validation_dataloader))
 
             # Move logits and punctuation_ids to CPU
             logits = model_out.logits.detach().cpu().numpy()
@@ -278,6 +291,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # Calculate the accuracy for this batch of test sentences, and
             # accumulate it over all batches.
             total_eval_accuracy += flat_accuracy(model_out.logits, punctuation_ids)
+
+            #log validation loss
+            writer.add_scalar("Validation loss", model_out.loss.item(), global_step = step)
+            #log validation accuracy
+            writer.add_scalar("Validation accuracy", flat_accuracy(model_out.logits, b_punctuation_ids), global_step = step)
             
 
         # Report the final accuracy for this validation run.
@@ -287,14 +305,18 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         # Calculate the average loss over all of the batches.
         avg_val_loss = total_eval_loss / len(validation_dataloader)
-        # log final loss
-        writer.add_scalar('final_accuracy', avg_val_loss)
+
         
         # Measure how long the validation run took.
         validation_time = format_time(time.time() - t0)
         
         print("  Validation Loss: {0:.2f}".format(avg_val_loss))
         print("  Validation took: {:}".format(validation_time))
+
+        #compute torchmetrics-accuracy
+        accuracy = acc.compute()
+        precision = prec.compute()
+        f1_score = f1.compute()
 
         # Record all statistics from this epoch.
         training_stats.append(
@@ -304,18 +326,32 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 'Valid. Loss': avg_val_loss,
                 'Valid. Accur.': avg_val_accuracy,
                 'Training Time': training_time,
-                'Validation Time': validation_time
+                'Validation Time': validation_time,
+                'torchmetrics Accuracy': str(accuracy),
+                'torchmetrics AP': str(precision),
+                'torchmetrics F1': str(f1_score)
             }
         )
+        #reset torchmetrics
+        acc.reset()
+        prec.reset()
+        f1.reset()
+        
         print("")
         print("Training complete!")
 
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
         save_to_json(training_stats, "src/train/training_logs/manual_log.json")
+        #creating a dummy input, for the TB graph
+        dummy_input = torch.randint(1, 9, (32, 40)) #low, high, size(tuple)
+        #wrapping model in another class that converts outputs from dict into namedtuple for graph visualization
+        model_wrapper = ModelWrapper(model)
+        writer.add_graph(model_wrapper, dummy_input)
+        
 
 # executing training
-train_path = os.path.join(os.getcwd(), "data", "processed", "tensors", "training_data.pt")
-val_path = os.path.join(os.getcwd(), "data", "processed", "tensors", "validation_data.pt")
+train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
+val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
 train_data = torch.load(train_path)
 val_data = torch.load(val_path)
 train_dataloader, validation_dataloader = load_data(train_data, val_data)
