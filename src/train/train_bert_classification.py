@@ -150,7 +150,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             #Save model every 1000 steps
             if step % 1000 == 0 and not step == 0:
                 model.eval()
-                torch.save(model.state_dict(), os.path.join(PROCESSED_DATA_PATH, "models", "epoch{:}_model.pt".format(epoch_i + 1)))
+                torch.save(model.state_dict(), os.path.join(os.getcwd, "saved_models", "epoch{:}_model.pt".format(epoch_i + 1)))
                 model.train()
 
             # Unpack this training batch from our dataloader. 
@@ -244,7 +244,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         model.eval()
 
         # Save the current state
-        torch.save(model.state_dict(), os.path.join(PROCESSED_DATA_PATH, "models", "trained_model.pt"))
+        torch.save(model.state_dict(), os.path.join(os.getcwd, "saved_models", "trained_model.pt"))
 
         # Tracking variables 
         total_eval_accuracy = 0
