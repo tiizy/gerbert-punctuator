@@ -137,10 +137,18 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# processed data files
-data/processed
+# processed data files and folders
+data/processed/dereko/classification_pairs_less_punct.json
+data/processed/dereko/classification_pairs_no_ID.json
+data/processed/dereko/classification_pairs_test.json
+data/processed/dereko/classification_pairs.json
+data/processed/dereko/pairs.json
+data/processed/dereko/single_sentences.txt
+data/processed/dereko/models/trained_model.pt
+data/processed/dereko/tensors
+data/processed/dereko/backup
 
-# models
+# models and tensors folders in data
 data/models
 
 # pytorch example data
