@@ -30,7 +30,7 @@ def format_time(elapsed):
 
 # Function to calculate the accuracy of our predictions vs punctuation_ids
 def flat_accuracy(preds, punctuation_ids):
-    pred_flat = np.argmax(preds.detach().numpy(), axis=1).flatten()
+    pred_flat = np.argmax(preds.detach().cpu().numpy(), axis=1).flatten()
     punctuation_ids_flat = punctuation_ids.flatten()
     return np.sum(pred_flat == punctuation_ids_flat) / len(punctuation_ids_flat)
 
@@ -341,18 +341,21 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("Training complete!")
 
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
-        save_to_json(training_stats, "src/train/training_logs/manual_log.json")
+
         #creating a dummy input, for the TB graph
         dummy_input = torch.randint(1, 9, (32, 40)) #low, high, size(tuple)
         #wrapping model in another class that converts outputs from dict into namedtuple for graph visualization
         model_wrapper = ModelWrapper(model)
         writer.add_graph(model_wrapper, dummy_input)
-        
+        save_to_json(training_stats, "src/train/training_logs/manual_log.json")
 
-# executing training
-train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
-val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
-train_data = torch.load(train_path)
-val_data = torch.load(val_path)
-train_dataloader, validation_dataloader = load_data(train_data, val_data)
-trainBertClassification(train_dataloader, validation_dataloader)
+def main():
+    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
+    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
+    train_data = torch.load(train_path)
+    val_data = torch.load(val_path)
+    train_dataloader, validation_dataloader = load_data(train_data, val_data)
+    trainBertClassification(train_dataloader, validation_dataloader)
+
+if __name__ == "__main__":
+    main()

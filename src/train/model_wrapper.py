@@ -17,8 +17,13 @@ class ModelWrapper(torch.nn.Module):
         """
         Init call.
         """
+        if torch.cuda.is_available():    
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
         super().__init__()
         self.model = model
+        model.to(device)
 
     def forward(self, input_x: torch.Tensor) -> Any:
         """
