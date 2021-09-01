@@ -104,8 +104,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
     #initialize torchmetrics
     acc = torchmetrics.Accuracy(num_classes=9, average="micro")
+    acc.to(device)
     prec = torchmetrics.AveragePrecision(num_classes=9)
+    prec.to(device)
     f1 = torchmetrics.F1(num_classes=9, average="micro")
+    f1.to(device)
 
     # For each epoch...
     for epoch_i in range(0, epochs):
@@ -343,10 +346,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
 
         #creating a dummy input, for the TB graph
-        dummy_input = torch.randint(1, 9, (32, 40)) #low, high, size(tuple)
+        #dummy_input = torch.randint(1, 9, (32, 40)) #low, high, size(tuple)
         #wrapping model in another class that converts outputs from dict into namedtuple for graph visualization
-        model_wrapper = ModelWrapper(model)
-        writer.add_graph(model_wrapper, dummy_input)
+        #model_wrapper = ModelWrapper(model)
+        #writer.add_graph(model_wrapper, dummy_input)
         save_to_json(training_stats, "src/train/training_logs/manual_log.json")
 
 def main():
