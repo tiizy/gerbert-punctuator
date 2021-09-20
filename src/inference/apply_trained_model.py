@@ -31,7 +31,7 @@ def apply_model(test_sentence, list_y):
 
     dataloader, list_x = convert_to_loader(test_sentence, list_y)
 
-    model_path = os.path.join(os.getcwd(), "data", "models", "trained_model.pt")
+    model_path = os.path.join(os.getcwd(), "saved_models", "trained_model_03_09.pt")
     if torch.cuda.is_available():    
     # Tell PyTorch to use available device 
         device = torch.device("cuda")
@@ -86,7 +86,7 @@ def main(test_sentences):
     return test_sent
          
 
-test_sentences = [""]
+test_sentences = ["Eine echte politische Anerkennung werde es allerdings nur geben können wenn die Taliban im Einklang mit den Werten der EU handelten betonte der Spanier"]
 result = main(test_sentences)
 print('')
 print(result)

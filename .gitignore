@@ -137,11 +137,13 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# processed data files and folders
+# raw and processed data files and folders
+data/raw
 data/processed/dereko/*.json
 data/processed/dereko/*.txt
 data/processed/dereko/tensors
 data/processed/dereko/backup
+data/processed/dereko/additional_training
 
 # models
 saved_models/*.pt

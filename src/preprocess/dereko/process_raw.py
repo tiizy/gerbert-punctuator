@@ -11,10 +11,10 @@ PROCESSED_DATA_PATH = os.path.join(os.getcwd(), "data", "processed", "dereko")
 
 def main():
 
-    content = open_files(RAW_DATA_PATH, ".txt")
+    content = open_files(RAW_DATA_PATH, "quote_rundschau.txt")
     splitted_sentences = split_raw_text(content)
     processed = process(splitted_sentences)
-    save_file(processed, PROCESSED_DATA_PATH, "single_sentences.txt")
+    save_file(processed, PROCESSED_DATA_PATH, "quote_single_sentences.txt")
 
 if __name__ == "__main__":
     main()
