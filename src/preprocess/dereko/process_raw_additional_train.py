@@ -51,7 +51,7 @@ def main(periodical : str):
         if ":" in sentence:
             filtered_colon.append(sentence)
     for sentence in processed_hyphen:
-        if "-" in sentence:
+        if " - " in sentence:
             filtered_hyphen.append(sentence)
     for sentence in processed_parenthesis:
         if "(" in sentence:
@@ -78,4 +78,4 @@ def main(periodical : str):
     save_file(filtered_quote, quote_save_path, "quote_" + periodical + ".txt")
 
 if __name__ == "__main__":
-    main("anzeiger")
+    main("wiesbadenerkur")
