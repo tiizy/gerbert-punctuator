@@ -139,6 +139,7 @@ cython_debug/
 
 # raw and processed data files and folders
 data/raw
+data/processed/dereko/
 data/processed/dereko/*.json
 data/processed/dereko/*.txt
 data/processed/dereko/tensors

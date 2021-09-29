@@ -4,13 +4,13 @@ import datetime
 import random
 from numpy.lib.function_base import average
 from torchmetrics.classification.accuracy import Accuracy
-from torchmetrics.text import bert
+#from torchmetrics.text import bert
 from transformers import BertForSequenceClassification, AdamW
 from transformers import get_linear_schedule_with_warmup
 import torch
 from torch.utils.tensorboard import SummaryWriter #SummaryWriter: key element to TensorBoard
 from src.preprocess.utils.json_handler import save_to_json
-from src.train.model_wrapper import ModelWrapper
+#from src.train.model_wrapper import ModelWrapper
 import torchmetrics
 
 import os
@@ -43,11 +43,14 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     #model = BertForTokenClassification.from_pretrained('bert-base-german-cased')
     
     model = BertForSequenceClassification.from_pretrained(
-        "bert-base-german-cased", # Use the German BERT model, with an cased vocab. More information here: https://www.deepset.ai/german-bert
-        num_labels = 9, # The number of output punctuation_ids--9, multi-class task.   
-        output_attentions = False, # Whether the model returns attentions weights.
-        output_hidden_states = False, # Whether the model returns all hidden-states.
-    )
+    "bert-base-german-cased", # Use the German BERT model, with an cased vocab. More information here: https://www.deepset.ai/german-bert
+    num_labels = 9, # The number of output punctuation_ids--9, multi-class task.   
+    output_attentions = False, # Whether the model returns attentions weights.
+    output_hidden_states = False, # Whether the model returns all hidden-states.
+    ) 
+
+    #model = BertForSequenceClassification.from_pretrained(os.path.join(os.getcwd(), "saved_models", "trained_model_03_09.pt"))
+    
     #print(model.parameters)
     # If there's a GPU available...
     if torch.cuda.is_available():    
@@ -109,6 +112,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     prec.to(device)
     f1 = torchmetrics.F1(num_classes=9, average="micro")
     f1.to(device)
+    tm_hamming_loss = torchmetrics.HammingDistance()
+    tm_hamming_loss.to(device)
+    tm_hinge_loss = torchmetrics.Hinge()
+    tm_hinge_loss.to(device)
 
     # For each epoch...
     for epoch_i in range(0, epochs):
@@ -212,9 +219,20 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             writer.add_scalar("Training loss", model_out.loss.item(), global_step = step)
             #log training accuracy
             writer.add_scalar("Training accuracy", flat_accuracy(model_out.logits, b_punctuation_ids), global_step = step)
+            
             accuracy = acc(model_out.logits, b_punctuation_ids)
+            accuracy = acc.compute_on_step()
             precision = prec(model_out.logits, b_punctuation_ids)
+            precision = prec.compute_on_step()
             f1_score = f1(model_out.logits, b_punctuation_ids)
+            hamming_loss = tm_hamming_loss(model_out.logits, b_punctuation_ids)
+            hamming_loss = tm_hamming_loss.compute_on_step()
+            hinge_loss = tm_hinge_loss(model_out.logits, b_punctuation_ids)
+            hinge_loss = tm_hinge_loss.compute_on_step
+            writer.add_scalar("Torchmetrics accuracy", accuracy, global_step = step)
+            writer.add_scalar("Torchmetrics precision", precision, global_step = step)
+            writer.add_scalar("Torchmetrics Hamming loss", hamming_loss, global_step = step)
+            writer.add_scalar("Torchmetrics Hinge loss", hinge_loss, global_step = step)
             
 
 
@@ -244,7 +262,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         model.eval()
 
         # Save the current state
-        torch.save(model.state_dict(), os.path.join(os.getcwd(), "saved_models", "trained_model.pt"))
+        torch.save(model.state_dict(), os.path.join(os.getcwd(), "saved_models", "trained_model_test.pt"))
+        model.save_pretrained(os.getcwd(), "saved_models", "trained_model_test.pt")
 
         # Tracking variables 
         total_eval_accuracy = 0
@@ -339,6 +358,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         acc.reset()
         prec.reset()
         f1.reset()
+        tm_hamming_loss.reset()
+        tm_hinge_loss.reset()
         
         print("")
         print("Training complete!")
@@ -353,8 +374,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         save_to_json(training_stats, "src/train/training_logs/manual_log.json")
 
 def main():
-    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
-    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
+    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "test_datasets", "test_training_data.pt")
+    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "test_datasets", "test_validation_data.pt")
     train_data = torch.load(train_path)
     val_data = torch.load(val_path)
     train_dataloader, validation_dataloader = load_data(train_data, val_data)
