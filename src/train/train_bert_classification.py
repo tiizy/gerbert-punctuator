@@ -213,9 +213,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
             #log training loss
             writer.add_scalar("Training loss", model_out.loss.item(), global_step = step)
-            #log training accuracy
-            writer.add_scalar("Training accuracy", flat_accuracy(model_out.logits, b_punctuation_ids), global_step = step)
             
+            #log training accuracy
             accuracy = acc(model_out.logits, b_punctuation_ids)
             accuracy = acc.compute()
             precision = prec(model_out.logits, b_punctuation_ids)
@@ -253,8 +252,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         model.eval()
 
         # Save the current state
-        torch.save(model.state_dict(), os.path.join(os.getcwd(), "saved_models", "trained_model_test.pt"))
-        model.save_pretrained(os.getcwd(), "saved_models", "trained_model_test.pt")
+        torch.save(model.state_dict(), os.path.join(os.getcwd(), "saved_models", "trained_model.pt"))
+        model.save_pretrained(os.path.join(os.getcwd(), "saved_models"))
 
         # Tracking variables 
         total_eval_accuracy = 0
@@ -307,8 +306,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
             #log validation loss
             writer.add_scalar("Validation loss", model_out.loss.item(), global_step = step)
-            #log validation accuracy
-            writer.add_scalar("Validation accuracy", flat_accuracy(model_out.logits, b_punctuation_ids), global_step = step)
             
 
         # Report the final accuracy for this validation run.
