@@ -106,16 +106,12 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     writer = SummaryWriter('src/train/training_logs/')
 
     #initialize torchmetrics
-    acc = torchmetrics.Accuracy(num_classes=9, average="micro")
+    acc = torchmetrics.Accuracy(num_classes=9, average="macro")
     acc.to(device)
-    prec = torchmetrics.AveragePrecision(num_classes=9)
+    prec = torchmetrics.Precision(num_classes=9, average="macro")
     prec.to(device)
     f1 = torchmetrics.F1(num_classes=9, average="micro")
     f1.to(device)
-    tm_hamming_loss = torchmetrics.HammingDistance()
-    tm_hamming_loss.to(device)
-    tm_hinge_loss = torchmetrics.Hinge()
-    tm_hinge_loss.to(device)
 
     # For each epoch...
     for epoch_i in range(0, epochs):
@@ -221,18 +217,13 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             writer.add_scalar("Training accuracy", flat_accuracy(model_out.logits, b_punctuation_ids), global_step = step)
             
             accuracy = acc(model_out.logits, b_punctuation_ids)
-            accuracy = acc.compute_on_step()
+            accuracy = acc.compute()
             precision = prec(model_out.logits, b_punctuation_ids)
-            precision = prec.compute_on_step()
+            precision = prec.compute()
             f1_score = f1(model_out.logits, b_punctuation_ids)
-            hamming_loss = tm_hamming_loss(model_out.logits, b_punctuation_ids)
-            hamming_loss = tm_hamming_loss.compute_on_step()
-            hinge_loss = tm_hinge_loss(model_out.logits, b_punctuation_ids)
-            hinge_loss = tm_hinge_loss.compute_on_step
+
             writer.add_scalar("Torchmetrics accuracy", accuracy, global_step = step)
             writer.add_scalar("Torchmetrics precision", precision, global_step = step)
-            writer.add_scalar("Torchmetrics Hamming loss", hamming_loss, global_step = step)
-            writer.add_scalar("Torchmetrics Hinge loss", hinge_loss, global_step = step)
             
 
 
@@ -358,8 +349,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         acc.reset()
         prec.reset()
         f1.reset()
-        tm_hamming_loss.reset()
-        tm_hinge_loss.reset()
         
         print("")
         print("Training complete!")
@@ -374,8 +363,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         save_to_json(training_stats, "src/train/training_logs/manual_log.json")
 
 def main():
-    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "test_datasets", "test_training_data.pt")
-    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "test_datasets", "test_validation_data.pt")
+    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_training_data.pt")
+    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_validation_data.pt")
     train_data = torch.load(train_path)
     val_data = torch.load(val_path)
     train_dataloader, validation_dataloader = load_data(train_data, val_data)
