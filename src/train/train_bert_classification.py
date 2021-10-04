@@ -108,7 +108,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     #initialize torchmetrics
     acc = torchmetrics.Accuracy(num_classes=9, average="macro")
     acc.to(device)
-    prec = torchmetrics.Precision(num_classes=9, average="macro")
+    prec = torchmetrics.Precision(num_classes=9, average="micro")
     prec.to(device)
     f1 = torchmetrics.F1(num_classes=9, average="micro")
     f1.to(device)
