@@ -16,7 +16,7 @@ for pair in file:
 number_punct = Counter(punctuation_list)
 
 result = {}
-for i in range(8):
+for i in range(9):
     #result[PUNCTUATION_TOKEN_ID[i]] = int(number_punct[i] * 0.8)
     result[PUNCTUATION_TOKEN_ID[i]] = int(number_punct[i])
 print(result)
