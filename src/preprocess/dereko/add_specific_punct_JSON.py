@@ -17,7 +17,7 @@ additional_file = open_json_file(additional_path)
 #PUNCTUATION_TOKEN_ID = {0:"None", 1:",", 2:".", 3:"?", 4:'"', 5:"(", 6:")", 7:":", 8:"-"}
 punctuation_list = []
 for pair in additional_file:
-    if pair['y'] == 6:
+    if pair['y'] == 7:
         punctuation_list.append(pair)
 
 for pair in punctuation_list:
