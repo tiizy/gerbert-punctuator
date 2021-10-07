@@ -338,7 +338,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 'Training Time': training_time,
                 'Validation Time': validation_time,
                 'torchmetrics Accuracy': str(accuracy),
-                'torchmetrics AP': str(precision),
+                'torchmetrics Precision': str(precision),
                 'torchmetrics F1': str(f1_score)
             }
         )
