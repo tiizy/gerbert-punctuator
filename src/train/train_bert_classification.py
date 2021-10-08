@@ -47,10 +47,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     num_labels = 9, # The number of output punctuation_ids--9, multi-class task.   
     output_attentions = False, # Whether the model returns attentions weights.
     output_hidden_states = False, # Whether the model returns all hidden-states.
-    ) 
+    )
 
     #model = BertForSequenceClassification.from_pretrained(os.path.join(os.getcwd(), "saved_models", "trained_model_03_09.pt"))
-    
+
     #print(model.parameters)
     # If there's a GPU available...
     if torch.cuda.is_available():    
@@ -102,8 +102,12 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     # Measure the total training time for the whole run.
     total_t0 = time.time()
 
+    # Add a save path with a current date
+    date = datetime.date().today().strftime("%d%m.")
+    save_path = os.path.join(os.getcwd(), "saved_models", date)
+
     # specify a folder for the TensorBoard-writer
-    writer = SummaryWriter('src/train/training_logs/')
+    writer = SummaryWriter(save_path)
 
     #initialize torchmetrics
     acc = torchmetrics.Accuracy(num_classes=9, average="macro")
@@ -153,7 +157,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             #Save model every 1000 steps
             if step % 1000 == 0 and not step == 0:
                 model.eval()
-                torch.save(model.state_dict(), os.path.join(os.getcwd(), "saved_models", "epoch{:}_model.pt".format(epoch_i + 1)))
+                torch.save(model.state_dict(), os.path.join(save_path, "epoch{:}_model.pt".format(epoch_i + 1)))
                 model.train()
 
             # Unpack this training batch from our dataloader. 
@@ -252,8 +256,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         model.eval()
 
         # Save the current state
-        torch.save(model.state_dict(), os.path.join(os.getcwd(), "saved_models", "trained_model.pt"))
-        model.save_pretrained(os.path.join(os.getcwd(), "saved_models"))
+        
+        torch.save(model.state_dict(), os.path.join(save_path, "trained_model.pt"))
+        model.save_pretrained(save_path)
 
         # Tracking variables 
         total_eval_accuracy = 0
@@ -357,7 +362,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         #wrapping model in another class that converts outputs from dict into namedtuple for graph visualization
         #model_wrapper = ModelWrapper(model)
         #writer.add_graph(model_wrapper, dummy_input)
-        save_to_json(training_stats, "src/train/training_logs/manual_log.json")
+        save_to_json(training_stats, os.path.join(save_path, "manual_log.json"))
 
 def main():
     train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_training_data.pt")
