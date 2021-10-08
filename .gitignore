@@ -147,8 +147,7 @@ data/processed/dereko/backup
 data/processed/dereko/additional_training
 
 # models
-saved_models/*.pt
-saved_models/*.np
+saved_models
 
 # pytorch example data
 src/pytorch_example_classifier/data

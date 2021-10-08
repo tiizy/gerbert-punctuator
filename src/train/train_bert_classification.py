@@ -103,7 +103,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     total_t0 = time.time()
 
     # Add a save path with a current date
-    date = datetime.date().today().strftime("%d%m.")
+    today = datetime.date.today()
+    date = today.strftime("%d.%m")
     save_path = os.path.join(os.getcwd(), "saved_models", date)
 
     # specify a folder for the TensorBoard-writer
@@ -207,6 +208,16 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # This is to help prevent the "exploding gradients" problem.
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
+            #log training loss, accuracy, precision, f1
+            accuracy = acc(model_out.logits, b_punctuation_ids)
+            precision = prec(model_out.logits, b_punctuation_ids)
+            f1_score = f1(model_out.logits, b_punctuation_ids)
+        
+            writer.add_scalar(f"Training loss, epoch: {str(epoch_i + 1)}", model_out.loss.item(), global_step = step)
+            writer.add_scalar(f"Torchmetrics accuracy, epoch: {str(epoch_i + 1)}", accuracy, global_step = step)
+            writer.add_scalar(f"Torchmetrics precision, epoch: {str(epoch_i + 1)}", precision, global_step = step)
+            writer.add_scalar(f"Torchmetrics f1, epoch: {str(epoch_i + 1)}", f1_score, global_step = step)
+
             # Update parameters and take a step using the computed gradient.
             # The optimizer dictates the "update rule"--how the parameters are
             # modified based on their gradients, the learning rate, etc.
@@ -214,21 +225,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
             # Update the learning rate.
             scheduler.step()
-
-            #log training loss
-            writer.add_scalar("Training loss", model_out.loss.item(), global_step = step)
-            
-            #log training accuracy
-            accuracy = acc(model_out.logits, b_punctuation_ids)
-            accuracy = acc.compute()
-            precision = prec(model_out.logits, b_punctuation_ids)
-            precision = prec.compute()
-            f1_score = f1(model_out.logits, b_punctuation_ids)
-
-            writer.add_scalar("Torchmetrics accuracy", accuracy, global_step = step)
-            writer.add_scalar("Torchmetrics precision", precision, global_step = step)
-            
-
 
         # Calculate the average loss over all of the batches.
         avg_train_loss = total_train_loss / len(train_dataloader)        
@@ -239,6 +235,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         print("")
         print("  Average training loss: {0:.2f}".format(avg_train_loss))
         print("  Training epoсh took: {:}".format(training_time))
+
+        #reset torchmetrics
+        acc.reset()
+        prec.reset()
+        f1.reset()
             
         # ========================================
         #               Validation
@@ -256,7 +257,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         model.eval()
 
         # Save the current state
-        
         torch.save(model.state_dict(), os.path.join(save_path, "trained_model.pt"))
         model.save_pretrained(save_path)
 
@@ -266,7 +266,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         nb_eval_steps = 0
 
         # Evaluate data for one epoch
-        for batch in validation_dataloader:
+        for batch_id, batch in enumerate(validation_dataloader):
             
             # Unpack this training batch from our dataloader. 
             #
@@ -309,8 +309,23 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # accumulate it over all batches.
             total_eval_accuracy += flat_accuracy(model_out.logits, punctuation_ids)
 
-            #log validation loss
-            writer.add_scalar("Validation loss", model_out.loss.item(), global_step = step)
+            #initialize torchmetrics
+            acc = torchmetrics.Accuracy(num_classes=9, average="macro")
+            acc.to(device)
+            prec = torchmetrics.Precision(num_classes=9, average="micro")
+            prec.to(device)
+            f1 = torchmetrics.F1(num_classes=9, average="micro")
+            f1.to(device)
+
+            #log validation loss, accuracy, precision, f1 
+            accuracy = acc(model_out.logits, b_punctuation_ids)
+            precision = prec(model_out.logits, b_punctuation_ids)
+            f1_score = f1(model_out.logits, b_punctuation_ids)
+        
+            writer.add_scalar(f"Validation loss {str(batch_id + 1)}", model_out.loss.item(), global_step = batch_id)
+            writer.add_scalar(f"Torchmetrics validation accuracy {str(batch_id + 1)}", accuracy, global_step = batch_id)
+            writer.add_scalar(f"Torchmetrics validation precision {str(batch_id + 1)}", precision, global_step = batch_id)
+            writer.add_scalar(f"Torchmetrics validation f1 {str(batch_id + 1)}", f1_score, global_step = batch_id)
             
 
         # Report the final accuracy for this validation run.
@@ -327,11 +342,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         
         print("  Validation Loss: {0:.2f}".format(avg_val_loss))
         print("  Validation took: {:}".format(validation_time))
-
-        #compute torchmetrics-accuracy
-        accuracy = acc.compute()
-        precision = prec.compute()
-        f1_score = f1.compute()
 
         # Record all statistics from this epoch.
         training_stats.append(
