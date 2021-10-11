@@ -224,7 +224,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             total_tm_f1 += f1_score
 
             step_counter += 1
-            if step_counter % 10 == 0 and not step_counter == 0:
+            if step_counter % 1000 == 0 and not step_counter == 0:
                 writer.add_scalar(f"Training loss, epoch: {str(epoch_i + 1)}", model_out.loss.item(), global_step = step_counter)
                 writer.add_scalar(f"Torchmetrics accuracy, epoch: {str(epoch_i + 1)}", accuracy, global_step = step_counter)
                 writer.add_scalar(f"Torchmetrics precision, epoch: {str(epoch_i + 1)}", precision, global_step = step_counter)
