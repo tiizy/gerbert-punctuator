@@ -115,7 +115,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     acc.to(device)
     prec = torchmetrics.Precision(num_classes=9, average="micro")
     prec.to(device)
-    f1 = torchmetrics.F1(num_classes=9, average="macro")
+    #Calculate the metric for each class separately, and average the metrics across classes (with equal weights for each class).
+    f1 = torchmetrics.F1(num_classes=9, average="macro") 
     f1.to(device)
 
     step_counter = 0
@@ -281,10 +282,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         total_eval_loss = 0
         total_eval_tm_accuracy = 0
         total_eval_tm_precision = 0
-        total_eval_tm_f1 = 0
 
         # Evaluate data for one epoch
-        for batch in validation_dataloader:
+        for batch_id, batch in enumerate(validation_dataloader):
             
             # Unpack this training batch from our dataloader. 
             #
@@ -332,22 +332,17 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             acc.to(device)
             prec = torchmetrics.Precision(num_classes=9, average="micro")
             prec.to(device)
-            f1 = torchmetrics.F1(num_classes=9, average="macro")
-            f1.to(device)
 
             #log validation loss, accuracy, precision, f1 
             accuracy = acc(model_out.logits, b_punctuation_ids)
             precision = prec(model_out.logits, b_punctuation_ids)
-            f1_score = f1(model_out.logits, b_punctuation_ids)
             
             total_eval_tm_accuracy += accuracy
             total_eval_tm_precision += precision
-            total_eval_tm_f1 += f1
 
-            writer.add_scalar(f"Validation loss", model_out.loss.item())
-            writer.add_scalar(f"Torchmetrics validation accuracy", accuracy)
-            writer.add_scalar(f"Torchmetrics validation precision", precision)
-            writer.add_scalar(f"Torchmetrics validation f1", f1_score)
+            writer.add_scalar(f"Validation loss", model_out.loss.item(), global_step = batch_id)
+            writer.add_scalar(f"Torchmetrics validation accuracy", accuracy, global_step = batch_id)
+            writer.add_scalar(f"Torchmetrics validation precision", precision, global_step = batch_id)
     
 
         # Report the final accuracy for this validation run.
@@ -360,7 +355,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         avg_val_tm_acc = total_eval_accuracy / len(validation_dataloader)
         avg_val_tm_prec = total_eval_tm_precision / len(validation_dataloader)
-        avg_val_tm_f1 = total_eval_tm_f1 / len(validation_dataloader)
 
         
         # Measure how long the validation run took.
@@ -382,8 +376,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 'torchmetrics Precision': str(avg_tm_precision),
                 'torchmetrics F1': str(avg_tm_f1),
                 'tochmetrics valid. Accuracy': str(avg_val_tm_acc),
-                'tochmetrics valid. Precision': str(avg_val_tm_prec),
-                'tochmetrics valid. F1': str(avg_val_tm_f1)
+                'tochmetrics valid. Precision': str(avg_val_tm_prec)
             }
         )
         #reset torchmetrics
