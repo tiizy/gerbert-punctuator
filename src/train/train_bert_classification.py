@@ -120,6 +120,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     f1.to(device)
 
     step_counter = 0
+    global_val_step = 0
 
     total_tm_accuracy = 0
     total_tm_precision = 0
@@ -225,11 +226,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             total_tm_f1 += f1_score
 
             step_counter += 1
-            if step_counter % 1000 == 0 and not step_counter == 0:
-                writer.add_scalar(f"Training loss, epoch: {str(epoch_i + 1)}", model_out.loss.item(), global_step = step_counter)
-                writer.add_scalar(f"Torchmetrics accuracy, epoch: {str(epoch_i + 1)}", accuracy, global_step = step_counter)
-                writer.add_scalar(f"Torchmetrics precision, epoch: {str(epoch_i + 1)}", precision, global_step = step_counter)
-                writer.add_scalar(f"Torchmetrics f1, epoch: {str(epoch_i + 1)}", f1_score, global_step = step_counter)
+            if step_counter % 1000 == 0 and not step_counter == 0 and step != 0:
+                writer.add_scalar("Training loss", total_train_loss / step, global_step = step_counter)
+                writer.add_scalar("Torchmetrics accuracy", total_tm_accuracy / step, global_step = step_counter)
+                writer.add_scalar("Torchmetrics precision", total_tm_precision / step, global_step = step_counter)
+                writer.add_scalar("Torchmetrics f1", total_tm_f1 / step, global_step = step_counter)
 
             # Update parameters and take a step using the computed gradient.
             # The optimizer dictates the "update rule"--how the parameters are
@@ -340,9 +341,12 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             total_eval_tm_accuracy += accuracy
             total_eval_tm_precision += precision
 
-            writer.add_scalar(f"Validation loss", model_out.loss.item(), global_step = batch_id)
-            writer.add_scalar(f"Torchmetrics validation accuracy", accuracy, global_step = batch_id)
-            writer.add_scalar(f"Torchmetrics validation precision", precision, global_step = batch_id)
+            
+            global_val_step += 1
+            if batch_id % 100 == 0 and not batch_id == 0:
+                writer.add_scalar("Validation loss", total_eval_loss / batch_id, global_step = global_val_step)
+                writer.add_scalar("Torchmetrics validation accuracy", total_eval_tm_accuracy / batch_id, global_step = global_val_step)
+                writer.add_scalar("Torchmetrics validation precision", total_eval_tm_precision / batch_id, global_step = global_val_step)
     
 
         # Report the final accuracy for this validation run.
@@ -397,8 +401,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         save_to_json(training_stats, os.path.join(save_path, "manual_log.json"))
 
 def main():
-    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
-    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
+    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_training_data.pt")
+    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_validation_data.pt")
     train_data = torch.load(train_path)
     val_data = torch.load(val_path)
     train_dataloader, validation_dataloader = load_data(train_data, val_data)
