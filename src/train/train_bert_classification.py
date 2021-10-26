@@ -122,10 +122,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     step_counter = 0
     global_val_step = 0
 
-    total_tm_accuracy = 0
-    total_tm_precision = 0
-    total_tm_f1 = 0
-
     # For each epoch...
     for epoch_i in range(0, epochs):
         
@@ -144,6 +140,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         # Reset the total loss for this epoch.
         total_train_loss = 0
+        total_tm_accuracy = 0
+        total_tm_precision = 0
+        total_tm_f1 = 0
 
         # Put the model into training mode. Don't be mislead--the call to 
         # `train` just changes the *mode*, it doesn't *perform* the training.
@@ -154,7 +153,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         # For each batch of training data...
         print("Total steps in one epoch: " + str(len(train_dataloader)))
         for step, batch in enumerate(train_dataloader):
-  
+
             # Progress update every 40 batches.
             if step % 40 == 0 and not step == 0:
                 # Calculate elapsed time in minutes.
@@ -225,12 +224,21 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             total_tm_precision += precision
             total_tm_f1 += f1_score
 
-            step_counter += 1
-            if step_counter % 1000 == 0 and not step_counter == 0 and step != 0:
-                writer.add_scalar("Training loss", total_train_loss / step, global_step = step_counter)
-                writer.add_scalar("Torchmetrics accuracy", total_tm_accuracy / step, global_step = step_counter)
-                writer.add_scalar("Torchmetrics precision", total_tm_precision / step, global_step = step_counter)
-                writer.add_scalar("Torchmetrics f1", total_tm_f1 / step, global_step = step_counter)
+            # step_counter += 1
+            # if step_counter % 2 == 0 and not step_counter == 0 and step != 0:
+            #     writer.add_scalar("Training loss", total_train_loss / step, step)
+            #     print(f"Torchmetrics loss = {total_train_loss / step}")
+
+            #     writer.add_scalar("Torchmetrics accuracy", accuracy, step)
+            #     print(f"Torchmetrics accuracy = {accuracy}")
+
+            #     writer.add_scalar("Torchmetrics precision", precision, step)
+            #     print(f"Torchmetrics precision = {precision}")
+
+            #     writer.add_scalar("Torchmetrics f1", f1_score, step)
+            #     print(f"Torchmetrics f1 = {f1_score}")
+
+            #     print("\n")
 
             # Update parameters and take a step using the computed gradient.
             # The optimizer dictates the "update rule"--how the parameters are
@@ -242,10 +250,14 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         # Calculate the average loss over all of the batches.
         avg_train_loss = total_train_loss / len(train_dataloader)
-
         avg_tm_accuracy = total_tm_accuracy / len(train_dataloader)
         avg_tm_precision = total_tm_precision /len(train_dataloader)
         avg_tm_f1 = total_tm_f1 / len(train_dataloader)
+
+        writer.add_scalar("Average Training loss", avg_train_loss, epoch_i)
+        writer.add_scalar("Average Torchmetrics accuracy", avg_tm_accuracy, epoch_i)
+        writer.add_scalar("Average Torchmetrics precision", avg_tm_precision, epoch_i)
+        writer.add_scalar("Average Torchmetrics f1", avg_tm_f1, epoch_i)
 
         # Measure how long this epoch took.
         training_time = format_time(time.time() - t0)
@@ -321,12 +333,12 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
 
             # Move logits and punctuation_ids to CPU
-            logits = model_out.logits.detach().cpu().numpy()
-            punctuation_ids = b_punctuation_ids.to('cpu').numpy()
+            # logits = model_out.logits.detach().cpu().numpy()
+            # punctuation_ids = b_punctuation_ids.to('cpu').numpy()
 
             # Calculate the accuracy for this batch of test sentences, and
             # accumulate it over all batches.
-            total_eval_accuracy += flat_accuracy(model_out.logits, punctuation_ids)
+            # total_eval_accuracy += flat_accuracy(model_out.logits, punctuation_ids)
 
             #initialize torchmetrics
             acc = torchmetrics.Accuracy(num_classes=9, average="micro")
@@ -347,19 +359,20 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 writer.add_scalar("Validation loss", total_eval_loss / batch_id, global_step = global_val_step)
                 writer.add_scalar("Torchmetrics validation accuracy", total_eval_tm_accuracy / batch_id, global_step = global_val_step)
                 writer.add_scalar("Torchmetrics validation precision", total_eval_tm_precision / batch_id, global_step = global_val_step)
-    
 
         # Report the final accuracy for this validation run.
-        avg_val_accuracy = total_eval_accuracy / len(validation_dataloader)
+        # avg_val_accuracy = total_eval_accuracy / len(validation_dataloader)
 
-        print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
+        # print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
 
         # Calculate the average loss over all of the batches.
         avg_val_loss = total_eval_loss / len(validation_dataloader)
-
-        avg_val_tm_acc = total_eval_accuracy / len(validation_dataloader)
+        avg_val_tm_acc = total_eval_tm_accuracy / len(validation_dataloader)
         avg_val_tm_prec = total_eval_tm_precision / len(validation_dataloader)
 
+        writer.add_scalar("Average Validation loss", avg_val_loss, global_step = epoch_i)
+        writer.add_scalar("Average Validation accuracy", avg_val_tm_acc, global_step = epoch_i)
+        writer.add_scalar("Average Validation precision", avg_val_tm_prec, global_step = epoch_i)
         
         # Measure how long the validation run took.
         validation_time = format_time(time.time() - t0)
@@ -373,7 +386,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 'epoch': epoch_i + 1,
                 'Training Loss': avg_train_loss,
                 'Valid. Loss': avg_val_loss,
-                'Valid. Accur.': avg_val_accuracy,
                 'Training Time': training_time,
                 'Validation Time': validation_time,
                 'torchmetrics Accuracy': str(avg_tm_accuracy),
