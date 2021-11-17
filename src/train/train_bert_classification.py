@@ -1,3 +1,4 @@
+from collections import Counter
 import numpy as np
 import time
 import datetime
@@ -116,10 +117,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     prec = torchmetrics.Precision(num_classes=9, average="micro")
     prec.to(device)
     #Calculate the metric for each class separately, and average the metrics across classes (with equal weights for each class).
-    f1 = torchmetrics.F1(num_classes=9, average="macro") 
+    f1 = torchmetrics.F1(num_classes=9) 
     f1.to(device)
 
-    step_counter = 0
+    counter_t = 0
     global_val_step = 0
 
     # For each epoch...
@@ -150,6 +151,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         # vs. test (source: https://stackoverflow.com/questions/51433378/what-does-model-train-do-in-pytorch)
         model.train()
 
+        #counter for saving graph every n(1000) steps
+        
+
         # For each batch of training data...
         print("Total steps in one epoch: " + str(len(train_dataloader)))
         for step, batch in enumerate(train_dataloader):
@@ -163,9 +167,23 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
 
             #Save model every 1000 steps
-            if step % 1000 == 0 and not step == 0:
+            if step % 10 == 0 and not step == 0: #change to 1000
+                counter_t += 1
+
                 model.eval()
                 torch.save(model.state_dict(), os.path.join(save_path, "epoch{:}_model.pt".format(epoch_i + 1)))
+                
+                avg_train_loss = total_train_loss / len(train_dataloader)
+                avg_tm_accuracy = total_tm_accuracy / len(train_dataloader)
+                avg_tm_precision = total_tm_precision /len(train_dataloader)
+                avg_tm_f1 = total_tm_f1 / len(train_dataloader)
+                #saves only the last, check
+                
+                writer.add_scalar("Average Training loss per 1000 steps", avg_train_loss, counter_t)
+                writer.add_scalar("Average Torchmetrics accuracy per 1000 steps", avg_tm_accuracy, counter_t)
+                writer.add_scalar("Average Torchmetrics precision per 1000 steps", avg_tm_precision, counter_t)
+                writer.add_scalar("Average Torchmetrics f1 per 1000 steps", avg_tm_f1, counter_t)
+                
                 model.train()
 
             # Unpack this training batch from our dataloader. 
@@ -254,10 +272,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         avg_tm_precision = total_tm_precision /len(train_dataloader)
         avg_tm_f1 = total_tm_f1 / len(train_dataloader)
 
-        writer.add_scalar("Average Training loss", avg_train_loss, epoch_i)
-        writer.add_scalar("Average Torchmetrics accuracy", avg_tm_accuracy, epoch_i)
-        writer.add_scalar("Average Torchmetrics precision", avg_tm_precision, epoch_i)
-        writer.add_scalar("Average Torchmetrics f1", avg_tm_f1, epoch_i)
+        writer.add_scalar("Average Training loss per epoch", avg_train_loss, epoch_i)
+        writer.add_scalar("Average Torchmetrics accuracy per epoch", avg_tm_accuracy, epoch_i)
+        writer.add_scalar("Average Torchmetrics precision per epoch", avg_tm_precision, epoch_i)
+        writer.add_scalar("Average Torchmetrics f1 per epoch", avg_tm_f1, epoch_i)
 
         # Measure how long this epoch took.
         training_time = format_time(time.time() - t0)
@@ -370,9 +388,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         avg_val_tm_acc = total_eval_tm_accuracy / len(validation_dataloader)
         avg_val_tm_prec = total_eval_tm_precision / len(validation_dataloader)
 
-        writer.add_scalar("Average Validation loss", avg_val_loss, global_step = epoch_i)
-        writer.add_scalar("Average Validation accuracy", avg_val_tm_acc, global_step = epoch_i)
-        writer.add_scalar("Average Validation precision", avg_val_tm_prec, global_step = epoch_i)
+        writer.add_scalar("Average Validation loss per epoch", avg_val_loss, global_step = epoch_i)
+        writer.add_scalar("Average Validation accuracy per epoch", avg_val_tm_acc, global_step = epoch_i)
+        writer.add_scalar("Average Validation precisionper epoch", avg_val_tm_prec, global_step = epoch_i)
         
         # Measure how long the validation run took.
         validation_time = format_time(time.time() - t0)
@@ -413,8 +431,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         save_to_json(training_stats, os.path.join(save_path, "manual_log.json"))
 
 def main():
-    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
-    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
+    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_training_data.pt")
+    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_validation_data.pt")
     train_data = torch.load(train_path)
     val_data = torch.load(val_path)
     train_dataloader, validation_dataloader = load_data(train_data, val_data)
