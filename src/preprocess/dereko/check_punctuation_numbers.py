@@ -8,6 +8,9 @@ from src.punctuation_token_id import PUNCTUATION_TOKEN_ID
 filename = "classification_pairs_filtered.json"
 path = os.path.join(PROCESSED_DATA_PATH, filename)
 file = open_json_file(path)
+print("")
+print(len(file))
+print("")
 
 punctuation_list = []
 for pair in file:

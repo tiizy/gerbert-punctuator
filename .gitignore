@@ -149,3 +149,6 @@ src/pytorch_example_classifier/data
 
 # logs
 src/train/training_logs
+
+# sentence length plots
+plot.png
