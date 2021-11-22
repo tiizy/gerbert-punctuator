@@ -167,7 +167,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
 
             #Save model every 1000 steps
-            if step % 10 == 0 and not step == 0: #change to 1000
+            if step % 1000 == 0 and not step == 0:
                 counter_t += 1
 
                 model.eval()
