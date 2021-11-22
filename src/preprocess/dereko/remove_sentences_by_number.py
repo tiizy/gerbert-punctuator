@@ -3,16 +3,15 @@ from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
 from src.preprocess.utils.json_handler import open_json_file, save_to_json
 from tqdm import tqdm
 
-filename = "tatoeba_reduced_temp.json"
+filename = "tatoeba_german_reduced.json"
 path = os.path.join(PROCESSED_DATA_PATH, filename)
 file = open_json_file(path)
 
 print(len(file))
-
 #PUNCTUATION_TOKEN_ID = {0:"None", 1:",", 2:".", 3:"?", 4:'"', 5:"(", 6:")", 7:":", 8:"-"}
-number_to_remove = 311
-token_id = 3
-count = 0
+number_to_remove = 2252
+token_id = 0
+count = 1
 
 reduced_list = file
 for idx, pair in tqdm(enumerate(file), "Removing pairs"):

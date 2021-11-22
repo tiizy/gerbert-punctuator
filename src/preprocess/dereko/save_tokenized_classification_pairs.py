@@ -5,7 +5,7 @@ from src.preprocess.dereko.bert_tokenization import tokenize_for_bert
 import torch
 
 
-pairs = open_json_file(os.path.join(PROCESSED_DATA_PATH, "classification_pairs_filtered_tatoeba.json"))
+pairs = open_json_file(os.path.join(PROCESSED_DATA_PATH, "classification_pairs_filtered_tatoeba_cleaned.json"))
 input_ids, attention_masks, punctuation_ids = tokenize_for_bert(pairs)
 save_path = os.path.join(PROCESSED_DATA_PATH, "tensors")
 torch.save(input_ids, os.path.join(save_path, "input_ids.pt"))
