@@ -145,6 +145,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         total_tm_precision = 0
         total_tm_f1 = 0
 
+        total_train_loss_t = 0
+        total_tm_accuracy_t = 0
+        total_tm_precision_t = 0
+        total_tm_f1_t = 0
+
         # Put the model into training mode. Don't be mislead--the call to 
         # `train` just changes the *mode*, it doesn't *perform* the training.
         # `dropout` and `batchnorm` layers behave differently during training
@@ -173,16 +178,20 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 model.eval()
                 torch.save(model.state_dict(), os.path.join(save_path, "epoch{:}_model.pt".format(epoch_i + 1)))
                 
-                avg_train_loss = total_train_loss / len(train_dataloader)
-                avg_tm_accuracy = total_tm_accuracy / len(train_dataloader)
-                avg_tm_precision = total_tm_precision /len(train_dataloader)
-                avg_tm_f1 = total_tm_f1 / len(train_dataloader)
-                #saves only the last, check
+                avg_train_loss = total_train_loss_t / 1000
+                avg_tm_accuracy = total_tm_accuracy_t / 1000
+                avg_tm_precision = total_tm_precision_t / 1000
+                avg_tm_f1 = total_tm_f1_t / 1000
                 
                 writer.add_scalar("Average Training loss per 1000 steps", avg_train_loss, counter_t)
                 writer.add_scalar("Average Torchmetrics accuracy per 1000 steps", avg_tm_accuracy, counter_t)
                 writer.add_scalar("Average Torchmetrics precision per 1000 steps", avg_tm_precision, counter_t)
                 writer.add_scalar("Average Torchmetrics f1 per 1000 steps", avg_tm_f1, counter_t)
+
+                total_train_loss_t = 0
+                total_tm_accuracy_t = 0
+                total_tm_precision_t = 0
+                total_tm_f1_t = 0
                 
                 model.train()
 
@@ -225,6 +234,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # single value; the `.item()` function just returns the Python value 
             # from the tensor.
             total_train_loss += model_out.loss.item()
+            total_train_loss_t += model_out.loss.item()
 
             # Perform a backward pass to calculate the gradients.
             model_out.loss.backward()
@@ -239,8 +249,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             f1_score = f1(model_out.logits, b_punctuation_ids)
 
             total_tm_accuracy += accuracy
+            total_tm_accuracy_t += accuracy
             total_tm_precision += precision
+            total_tm_precision_t += precision
             total_tm_f1 += f1_score
+            total_tm_f1_t += f1_score
 
             # step_counter += 1
             # if step_counter % 2 == 0 and not step_counter == 0 and step != 0:
