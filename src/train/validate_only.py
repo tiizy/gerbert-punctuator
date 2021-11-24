@@ -75,7 +75,7 @@ def validate_model(path:dict, validation_dataloader):
 
             
             global_val_step += 1
-            if batch_id % 1 == 0 and not batch_id == 0:
+            if batch_id % 100 == 0 and not batch_id == 0:
                 writer.add_scalar("Validation loss", total_eval_loss / batch_id, global_step = global_val_step)
                 writer.add_scalar("Torchmetrics validation accuracy", total_eval_tm_accuracy / batch_id, global_step = global_val_step)
                 writer.add_scalar("Torchmetrics validation precision", total_eval_tm_precision / batch_id, global_step = global_val_step)
