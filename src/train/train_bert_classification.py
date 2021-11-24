@@ -112,9 +112,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     writer = SummaryWriter(save_path)
 
     #initialize torchmetrics
-    acc = torchmetrics.Accuracy(num_classes=9, average="micro")
+    acc = torchmetrics.Accuracy(num_classes=9, average="macro")
     acc.to(device)
-    prec = torchmetrics.Precision(num_classes=9, average="micro")
+    prec = torchmetrics.Precision(num_classes=9, average="macro")
     prec.to(device)
     #Calculate the metric for each class separately, and average the metrics across classes (with equal weights for each class).
     f1 = torchmetrics.F1(num_classes=9) 
@@ -372,9 +372,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             # total_eval_accuracy += flat_accuracy(model_out.logits, punctuation_ids)
 
             #initialize torchmetrics
-            acc = torchmetrics.Accuracy(num_classes=9, average="micro")
+            acc = torchmetrics.Accuracy(num_classes=9, average="macro")
             acc.to(device)
-            prec = torchmetrics.Precision(num_classes=9, average="micro")
+            prec = torchmetrics.Precision(num_classes=9, average="macro")
             prec.to(device)
 
             #log validation loss, accuracy, precision, f1 
