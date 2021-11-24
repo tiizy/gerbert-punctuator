@@ -1,11 +1,8 @@
-from collections import Counter
 import numpy as np
 import time
 import datetime
 import random
 from numpy.lib.function_base import average
-from torchmetrics.classification.accuracy import Accuracy
-#from torchmetrics.text import bert
 from transformers import BertForSequenceClassification, AdamW
 from transformers import get_linear_schedule_with_warmup
 import torch
@@ -322,7 +319,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         model.save_pretrained(save_path)
 
         # Tracking variables 
-        total_eval_accuracy = 0
         total_eval_loss = 0
         total_eval_tm_accuracy = 0
         total_eval_tm_precision = 0
