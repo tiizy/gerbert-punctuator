@@ -10,23 +10,17 @@ def load_data(train_dataset, val_dataset) -> DataLoader:
         validation_dataloader = An iteration for validation data.
     """
 
-    # The DataLoader needs to know our batch size for training, so we specify it 
-    # here. For fine-tuning BERT on a specific task, the authors recommend a batch 
-    # size of 16 or 32.
     batch_size = 32
 
-    # Create the DataLoaders for our training and validation sets.
-    # We'll take training samples in random order. 
     train_dataloader = DataLoader(
-                train_dataset,  # The training samples.
+                train_dataset,
                 sampler = RandomSampler(train_dataset), # Select batches randomly
-                batch_size = batch_size # Trains with this batch size.
+                batch_size = batch_size
             )
 
-    # For validation the order doesn't matter, so we'll just read them sequentially.
     validation_dataloader = DataLoader(
-                val_dataset, # The validation samples.
-                sampler = SequentialSampler(val_dataset), # Pull out batches sequentially.
-                batch_size = batch_size # Evaluate with this batch size.
+                val_dataset,
+                sampler = SequentialSampler(val_dataset),
+                batch_size = batch_size
             )
     return train_dataloader, validation_dataloader
