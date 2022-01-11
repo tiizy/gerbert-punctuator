@@ -7,3 +7,4 @@ matplotlib==3.4.2
 tensorboard==2.6.0
 torchmetrics==0.5.0 
 https://github.com/explosion/spacy-models/releases/download/de_core_news_md-3.0.0/de_core_news_md-3.0.0.tar.gz
+flair==0.10
