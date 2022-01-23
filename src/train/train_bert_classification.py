@@ -4,6 +4,7 @@ import datetime
 import random
 from numpy.lib.function_base import average
 from transformers import BertForSequenceClassification, AdamW
+from transformers import BertTokenizer
 from transformers import get_linear_schedule_with_warmup
 import torch
 from torch.utils.tensorboard import SummaryWriter #SummaryWriter: key element to TensorBoard
@@ -36,6 +37,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     output_attentions = False, # Whether the model returns attentions weights.
     output_hidden_states = False, # Whether the model returns all hidden-states.
     )
+    #adding special tokens to a tokenizer and resizing the model accordingly
+    tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased", do_lower_case = False)
+    tokenizer.add_special_tokens({'additional_special_tokens': ['<PUNCT>']})
+    model.resize_token_embeddings(len(tokenizer))
 
     #print(model.parameters)
     # If there's a GPU available...
