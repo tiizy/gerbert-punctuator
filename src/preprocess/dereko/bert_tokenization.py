@@ -3,8 +3,6 @@ import torch
 from tqdm import tqdm
 
 
-tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased", do_lower_case = False)
-
 def tokenize_for_bert(pairs : dict) -> torch.Tensor:
     """Transforms sentence-pairs into tensors.
     Args: 
@@ -14,6 +12,9 @@ def tokenize_for_bert(pairs : dict) -> torch.Tensor:
         punctuation_ids: Corresponding ID of the punctuation of a specific spot in a sentence.
         attention_masks:  Corresponding attention mask.
     """
+
+    tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased", do_lower_case = False)
+    tokenizer.add_special_tokens({'additional_special_tokens': ['<PUNCT>']})
 
     max_len = 0
     for el in tqdm(pairs, desc = "Determining max sentence length"):
@@ -27,7 +28,9 @@ def tokenize_for_bert(pairs : dict) -> torch.Tensor:
     attention_masks = []
     punctuation_ids = []
 
+    
     for el in tqdm(pairs, desc = "Tokenizing pairs"):
+        
         encoded = tokenizer.encode_plus(
         text = el["X"],
         add_special_tokens = True, # Add [CLS] and [SEP]
@@ -44,5 +47,7 @@ def tokenize_for_bert(pairs : dict) -> torch.Tensor:
     input_ids = torch.cat(input_ids, dim=0)
     attention_masks = torch.cat(attention_masks, dim=0)
     punctuation_ids = torch.tensor(punctuation_ids)
+    #print(tokenizer.all_special_tokens_extended)
+    #print(tokenizer.tokenize("Doch viele <PUNCT>, Komponisten haben die Erfahrung eines Vertrauensverlustes"))
 
     return input_ids, attention_masks, punctuation_ids
