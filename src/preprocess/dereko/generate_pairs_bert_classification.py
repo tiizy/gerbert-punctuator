@@ -24,7 +24,7 @@ def create_classification_pairs(list_sentences : list) -> list:
         while i < len(list_words): 
             doc = nlp(list_words[i]) #create spacy object
             masked_list = [el for num, el in enumerate(list_words)] #create list of words
-            masked_list.insert(i, "[MASK]") #insert the mask between the words
+            masked_list.insert(i, r'[MASK]') #insert the mask between the words
             masked_list = remove_punct_after_marker(masked_list)
             list_pairs.append(masked_list)
             
@@ -52,12 +52,12 @@ def remove_punct_after_marker(sentence :list) -> list:
     processed_sentence = []
     is_punct_found = False
     for word in sentence:
-        if word == "[MASK]":
+        if word == r'[MASK]':
             is_punct_found = True
         
         if is_punct_found:
             doc = nlp(word)
-            if doc[0].is_punct == False:
+            if str(doc) == r"[MASK]" or doc[0].is_punct == False:
                 processed_sentence.append(word)
         else:
             processed_sentence.append(word)
