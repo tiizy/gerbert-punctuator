@@ -46,6 +46,6 @@ def tokenize_for_bert(pairs : dict) -> torch.Tensor:
     input_ids = torch.cat(input_ids, dim=0)
     attention_masks = torch.cat(attention_masks, dim=0)
     punctuation_ids = torch.tensor(punctuation_ids)
-    print("All tokens in tokenizer: " + tokenizer.all_special_tokens_extended)
+    print("All tokens in tokenizer: " + str(tokenizer.all_special_tokens_extended))
 
     return input_ids, attention_masks, punctuation_ids
