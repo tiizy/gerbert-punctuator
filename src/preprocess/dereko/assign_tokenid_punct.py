@@ -1,4 +1,4 @@
-from tqdm import tqdm
+
 from src.punctuation_token_id import PUNCTUATION_TOKEN_ID
 
 def assign_id(list_y : list) -> list:
@@ -10,11 +10,12 @@ def assign_id(list_y : list) -> list:
         list_id (list): Pair y with tokenIDs instead of strings.
     """
     list_id = []
-    ignored_chars = ['[', ']', '%', '@', '&', '#', '/', "'", ";", "!"]
+    important_chars = ["None", ",", ".", "?", '"', "(", ")", ":", "-"]
 
-    for punct in tqdm(list_y, desc="Assigning token IDs"):
-        if punct in ignored_chars:
+    for punct in list_y:
+        if punct not in important_chars:
             list_id.append(0)
+            continue
         for id, string in PUNCTUATION_TOKEN_ID.items():
             if punct == string:
                 list_id.append(id)

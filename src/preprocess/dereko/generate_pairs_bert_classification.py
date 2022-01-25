@@ -24,7 +24,7 @@ def create_classification_pairs(list_sentences : list) -> list:
         while i < len(list_words): 
             doc = nlp(list_words[i]) #create spacy object
             masked_list = [el for num, el in enumerate(list_words)] #create list of words
-            masked_list.insert(i, "<PUNCT>") #insert the mask between the words
+            masked_list.insert(i, "[MASK]") #insert the mask between the words
             masked_list = remove_punct_after_marker(masked_list)
             list_pairs.append(masked_list)
             
@@ -43,16 +43,16 @@ def create_classification_pairs(list_sentences : list) -> list:
 
 
 def remove_punct_after_marker(sentence :list) -> list:
-    """Removes any punctuation after the <PUNCT>-token.
+    """Removes any punctuation after the [MASK]-token.
     Args:
-        sentence (list): Sentence with <PUNCT>-token and punctuation.
+        sentence (list): Sentence with [MASK]-token and punctuation.
     Returns:
-        processed_sentence (list): Sentence in which any punctuation after the <PUNCT>-token is removed.
+        processed_sentence (list): Sentence in which any punctuation after the [MASK]-token is removed.
     """
     processed_sentence = []
     is_punct_found = False
     for word in sentence:
-        if word == "<PUNCT>":
+        if word == "[MASK]":
             is_punct_found = True
         
         if is_punct_found:

@@ -37,12 +37,24 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     output_attentions = False, # Whether the model returns attentions weights.
     output_hidden_states = False, # Whether the model returns all hidden-states.
     )
+
     #adding special tokens to a tokenizer and resizing the model accordingly
     tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased", do_lower_case = False)
     tokenizer.add_special_tokens({'additional_special_tokens': ['<PUNCT>']})
     model.resize_token_embeddings(len(tokenizer))
 
     #print(model.parameters)
+
+    frozen_layers = ["layer.10", "layer.11"]
+
+    for name, param in model.named_parameters():
+        if any(x in name for x in frozen_layers):
+            param.requires_grad = False
+
+    for name, param in model.named_parameters():
+        if param.requires_grad == True:
+            print(name)
+    
     # If there's a GPU available...
     if torch.cuda.is_available():    
     # Tell PyTorch to use the GPU.    
@@ -352,8 +364,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         save_to_json(training_stats, os.path.join(save_path, "manual_log.json"))
 
 def main():
-    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
-    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
+    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_training_data.pt")
+    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_validation_data.pt")
     train_data = torch.load(train_path)
     val_data = torch.load(val_path)
     train_dataloader, validation_dataloader = load_data(train_data, val_data)

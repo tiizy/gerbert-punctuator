@@ -14,7 +14,6 @@ def tokenize_for_bert(pairs : dict) -> torch.Tensor:
     """
 
     tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased", do_lower_case = False)
-    tokenizer.add_special_tokens({'additional_special_tokens': ['<PUNCT>']})
 
     max_len = 0
     for el in tqdm(pairs, desc = "Determining max sentence length"):
@@ -47,7 +46,6 @@ def tokenize_for_bert(pairs : dict) -> torch.Tensor:
     input_ids = torch.cat(input_ids, dim=0)
     attention_masks = torch.cat(attention_masks, dim=0)
     punctuation_ids = torch.tensor(punctuation_ids)
-    #print(tokenizer.all_special_tokens_extended)
-    #print(tokenizer.tokenize("Doch viele <PUNCT>, Komponisten haben die Erfahrung eines Vertrauensverlustes"))
+    print("All tokens in tokenizer: " + tokenizer.all_special_tokens_extended)
 
     return input_ids, attention_masks, punctuation_ids
