@@ -13,7 +13,6 @@ from src.preprocess.utils.json_handler import save_to_json
 import torchmetrics
 
 import os
-from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
 from src.train.iterator_data_loader import load_data
 
 
@@ -38,19 +37,23 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     output_hidden_states = False, # Whether the model returns all hidden-states.
     )
 
-    #adding special tokens to a tokenizer and resizing the model accordingly
-    tokenizer = BertTokenizer.from_pretrained("bert-base-german-cased", do_lower_case = False)
-    tokenizer.add_special_tokens({'additional_special_tokens': ['<PUNCT>']})
-    model.resize_token_embeddings(len(tokenizer))
-
     #print(model.parameters)
-
-    frozen_layers = ["layer.10", "layer.11"]
-
+    
+    #freeze all layers
     for name, param in model.named_parameters():
-        if any(x in name for x in frozen_layers):
-            param.requires_grad = False
+        #print(name)
+        param.requires_grad = False
 
+    #unfreeze last n layers
+    unfrozen_layers = ["layer.10", "layer.11", "bert.pooler", "classifier"]
+    for name, param in model.named_parameters():
+        if any(x in name for x in unfrozen_layers):
+            param.requires_grad = True
+
+    #print unfrozen layers
+    print(" ")
+    print("Following Layers are unfrozen:")
+    print(" ")
     for name, param in model.named_parameters():
         if param.requires_grad == True:
             print(name)
@@ -364,8 +367,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         save_to_json(training_stats, os.path.join(save_path, "manual_log.json"))
 
 def main():
-    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_training_data.pt")
-    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_validation_data.pt")
+    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
+    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
     train_data = torch.load(train_path)
     val_data = torch.load(val_path)
     train_dataloader, validation_dataloader = load_data(train_data, val_data)
