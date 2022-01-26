@@ -5,7 +5,7 @@ from src.preprocess.dereko.generate_pairs_bert_classification import create_clas
 from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
 
 def main():
-    f = open(os.path.join("data", "processed", "tatoeba_german.txt"), "r", encoding="utf8")
+    f = open(os.path.join("data", "processed", "tatoeba_german_part1.txt"), "r", encoding="utf8")
     file_content = f.readlines()
     f.close()
     list_x, list_y = create_classification_pairs(file_content)
@@ -13,6 +13,6 @@ def main():
     result_list = []
     for i in range(len(list_y)):
         result_list.append({'X': list_x[i], 'y':list_y[i]})
-    save_to_json(result_list, os.path.join(PROCESSED_DATA_PATH, "tatoeba_german5.json"))
+    save_to_json(result_list, os.path.join(PROCESSED_DATA_PATH, "tatoeba_german1.json"))
 
 main()
