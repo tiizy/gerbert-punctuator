@@ -25,27 +25,28 @@ def convert_to_loader(test_sentence, list_y):
                 sampler = SequentialSampler(dataset), # Pull out batches sequentially.
                 batch_size = 32)
     return loader, test_sentence
+
+model_path = os.path.join(os.getcwd(), "saved_models", "26.01", "trained_model.pt")
+if torch.cuda.is_available():    
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
+
+model = BertForSequenceClassification.from_pretrained(
+        "bert-base-german-cased",
+        num_labels = 9, # The number of output punctuation_ids--9, multi-class task.   
+        output_attentions = False, # Whether the model returns attentions weights.
+        output_hidden_states = False, # Whether the model returns all hidden-states.
+        )
+model.load_state_dict(torch.load(model_path, map_location = device)) #load trained model
+model.to(device)
     
 
 def apply_model(test_sentence, list_y):
 
     dataloader, list_x = convert_to_loader(test_sentence, list_y)
 
-    model_path = os.path.join(os.getcwd(), "saved_models", "26.10", "trained_model.pt")
-    if torch.cuda.is_available():    
-    # Tell PyTorch to use available device 
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-
-    model = BertForSequenceClassification.from_pretrained(
-        "bert-base-german-cased",
-        num_labels = 9, # The number of output punctuation_ids--9, multi-class task.   
-        output_attentions = False, # Whether the model returns attentions weights.
-        output_hidden_states = False, # Whether the model returns all hidden-states.
-        )
-    model.load_state_dict(torch.load(model_path, map_location = device)) #load trained model
-    model.to(device)
+    
     model.eval() #set model to evaluation mode, print it to see the last layer
     for batch in dataloader:
         b_input_ids = batch[0].to(device)
@@ -59,8 +60,8 @@ def apply_model(test_sentence, list_y):
     for idx, tensor in enumerate(predictions["logits"]): #go through predictions
         if str(torch.argmax(tensor)) != "tensor(0)": #if you find an item that is not "None"
             for id, item in enumerate(list_x): #go through the fitting sentence
-                if item == "<PUNCT>":
-                    list_x[id] = PUNCTUATION_TOKEN_ID[torch.argmax(tensor).item()] #add the correct punctuation token instead of "<PUNCT>"
+                if item == "[MASK]":
+                    list_x[id] = PUNCTUATION_TOKEN_ID[torch.argmax(tensor).item()] #add the correct punctuation token instead of "[MASK]"
             return list_x
         else:
             return None
@@ -74,22 +75,20 @@ def main(test_sentences):
         result = apply_model(test_sent, list_y)
         if result:
             test_sent = result
-            test_sent.insert(id+2, "<PUNCT>")
+            test_sent.insert(id+2, "[MASK]")
         for id, word in enumerate(test_sent):
-            if word == "<PUNCT>":
-                test_sent.remove("<PUNCT>")
-                test_sent.insert(id+1, "<PUNCT>")
+            if word == "[MASK]":
+                test_sent.remove("[MASK]")
+                test_sent.insert(id+1, "[MASK]")
                 break
-    test_sent.remove("<PUNCT>")
+    test_sent.remove("[MASK]")
     test_sent = " ".join(test_sent)
     test_sent = re.sub(r'\s([\,\.\!\?\;\'\"\(\)\:\-](?:\s|$))', r'\1', test_sent)
     return test_sent
          
 
-test_sentences = ["Peter ist gleich da"]
+test_sentences = ["Berlin Die Beauftragten haben einige Aufgaben ausgeführt wie z B das Ausführen ihrer Tätigkeiten"]
 result = main(test_sentences)
 print('')
 print(result)
 print('')
-
-#DO NOT LOAD MODEL EVERY TIME
