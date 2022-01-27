@@ -41,11 +41,11 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     
     #freeze all layers
     for name, param in model.named_parameters():
-        #print(name)
+        print(name)
         param.requires_grad = False
 
     #unfreeze last n layers
-    unfrozen_layers = ["layer.10", "layer.11", "bert.pooler", "classifier"]
+    unfrozen_layers = ["layer.9", "layer.10", "layer.11", "bert.pooler", "classifier"]
     for name, param in model.named_parameters():
         if any(x in name for x in unfrozen_layers):
             param.requires_grad = True
