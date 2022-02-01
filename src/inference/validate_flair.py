@@ -8,7 +8,7 @@ def flair_validation():
 
     data_path = "data/processed/dereko/"
     corpus = ClassificationCorpus(data_path,
-                                test_file='flair_test_test.txt',
+                                test_file='flair_test.txt',
                                 dev_file='flair_val.txt',
                                 train_file='flair_train.txt',
                                 label_type="class"                                       
