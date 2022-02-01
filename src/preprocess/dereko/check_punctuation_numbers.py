@@ -1,4 +1,3 @@
-import collections
 import os
 from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
 from src.preprocess.utils.json_handler import open_json_file
