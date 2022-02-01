@@ -1,11 +1,11 @@
 from flair.models import TextClassifier
 import re
 from flair.data import Sentence
+from src.punctuation_token_id import PUNCTUATION_TOKEN_ID
+
 
 model_path = "saved_models/flair-01-02/best-model.pt"
 model = TextClassifier.load(model_path)
-
-
 
 def flair_inference(sentence):
 
@@ -18,17 +18,26 @@ def flair_inference(sentence):
     list_words.append(r'[MASK]') #insert the token at the end
     processed_sents.append(list_words)
     
-    final_list = []
+    temp_list = []
     for item in processed_sents:
-        final_list.append(' '.join(item)) #convert list to string
-    
-    label_list = []
-    for pos, sent in enumerate(final_list):
-        sentence = Sentence(sent) #create a flair sentence object
-        model.predict(sentence)
-        label = str(sentence.labels)[1]
-        if int(label) != 0:
-            print(pos)
+        temp_list.append(' '.join(item)) #convert list to string
+    list_words.pop() #remove the unnecesary MASK token at the end
 
-sentence = "Dies ist ein Test"
-#flair_inference(sentence)
+    i = 0
+    for sent in temp_list:
+        sentence = Sentence(sent) #create a flair sentence object
+        model.predict(sentence) #predict label
+        label = str(sentence.labels)[1] #extract the numerical equivalent of the punctuation token
+        if label != "]" and int(label) != 0: #if there the label is not "none"
+            list_words.insert(i, PUNCTUATION_TOKEN_ID[int(label)]) #insert the label at the right position, change the number to token
+            i += 1
+        i += 1
+            
+
+    result = " ".join(list_words)
+    result = re.sub(r'\s([\,\.\!\?\;\'\"\(\)\:\-](?:\s|$))', r'\1', result)
+    return result
+
+sentence = "Ich weiß es nicht sagte Mr Hawkins"
+sentence = "Die Taliban bestätigen dass die US Truppen keine weiteren Aktionen unternommen haben und ihre Truppen abgezogen haben"
+print(flair_inference(sentence))
