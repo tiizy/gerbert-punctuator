@@ -1,8 +1,6 @@
 import spacy
 from tqdm import tqdm
 import re
-
-from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
 from src.punctuation_token_id import PUNCTUATION_TOKEN_ID
 
 
@@ -23,15 +21,12 @@ def create_classification_pairs(list_sentences : list) -> list:
         list_words = re.findall(r"\w+|[^\w\s]", sentence, re.UNICODE) #look for whole words
         i = 0
         while i < len(list_words): 
-            #doc = nlp(list_words[i]) #create spacy object
             masked_list = [el for num, el in enumerate(list_words)] #create list of words
             masked_list.insert(i, r'[MASK]') #insert the mask between the words
             masked_list = remove_punct_after_marker(masked_list)
             list_pairs.append(masked_list)           
             y = ""
-            #for el in doc:
             for el in list_words[i]:
-                #if el.is_punct == True:
                 if el in PUNCTUATION_TOKEN_ID.values():
                     y = el
                     i += 1 #going to the next space, to prevent searching after a punctuation has been found
