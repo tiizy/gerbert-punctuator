@@ -164,6 +164,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         total_train_loss_t = 0
         total_tm_accuracy_t = 0
         total_tm_precision_t = 0
+        total_tm_recall_t = 0
         total_tm_f1_t = 0
         
         # Put the model into training mode.
@@ -191,13 +192,19 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 avg_train_loss = total_train_loss_t / 1000
                 avg_tm_accuracy = total_tm_accuracy_t / 1000
                 avg_tm_precision = total_tm_precision_t / 1000
+                avg_tm_recall = total_tm_recall_t / 1000
                 avg_tm_f1 = total_tm_f1_t / 1000
                 
                 writer.add_scalar("Average Training loss per 1000 steps", avg_train_loss, counter_t)
                 writer.add_scalar("Average Torchmetrics accuracy per 1000 steps", avg_tm_accuracy, counter_t)
                 writer.add_scalar("Average Torchmetrics precision per 1000 steps", avg_tm_precision, counter_t)
+                writer.add_scalar("Average Torchmetrics recall per 1000 steps", avg_tm_recall, counter_t)
                 writer.add_scalar("Average Torchmetrics f1 per 1000 steps", avg_tm_f1, counter_t)
 
+                total_train_loss_t = 0
+                total_tm_accuracy_t = 0
+                total_tm_precision_t = 0
+                total_tm_f1_t = 0
                 
                 model.train()
 
@@ -246,7 +253,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             total_tm_precision_t += precision
             total_tm_precision_class += precision_class
             total_tm_recall += recall
-            total_tm_recall_class +=rec_class
+            total_tm_recall_class += recall_class
             total_tm_f1 += f1_score
             total_tm_f1_t += f1_score
             total_tm_f1_class += f1_for_class
@@ -272,11 +279,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         avg_tm_recall_class = total_tm_recall_class / rec_class_denom
         avg_tm_f1 = total_tm_f1 / len(train_dataloader)
         avg_tm_f1_class = total_tm_f1_class / f1_class_denom
-
-        writer.add_scalar("Average Training loss per epoch", avg_train_loss, epoch_i)
-        writer.add_scalar("Average Torchmetrics accuracy per epoch", avg_tm_accuracy, epoch_i)
-        writer.add_scalar("Average Torchmetrics precision per epoch", avg_tm_precision, epoch_i)
-        writer.add_scalar("Average Torchmetrics f1 per epoch", avg_tm_f1, epoch_i)
 
         # Measure how long this epoch took.
         training_time = format_time(time.time() - t0)
@@ -351,11 +353,12 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             precision = prec(model_out.logits, b_punctuation_ids)
             recall = rec(model_out.logits, b_punctuation_ids)
             f1_score = f1(model_out.logits, b_punctuation_ids)
+
             
             total_eval_tm_accuracy += accuracy
             total_eval_tm_precision += precision
             total_eval_tm_recall += recall
-            total_eval_tm_f1 += f1
+            total_eval_tm_f1 += f1_score
             
             global_val_step += 1
             if batch_id % 100 == 0 and not batch_id == 0:
@@ -374,7 +377,9 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         writer.add_scalar("Average Validation loss per epoch", avg_val_loss, global_step = epoch_i)
         writer.add_scalar("Average Validation accuracy per epoch", avg_val_tm_acc, global_step = epoch_i)
-        writer.add_scalar("Average Validation precisionper epoch", avg_val_tm_prec, global_step = epoch_i)
+        writer.add_scalar("Average Validation precision per epoch", avg_val_tm_prec, global_step = epoch_i)
+        writer.add_scalar("Average Validation recall per epoch", avg_val_tm_rec, global_step = epoch_i)
+        writer.add_scalar("Average Validation F1 per epoch", avg_val_tm_f1, global_step = epoch_i)
         
         # Measure how long the validation run took.
         validation_time = format_time(time.time() - t0)
@@ -412,7 +417,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         
         print("")
         print("Training complete!")
-
         print("Total training took {:} (h:mm:ss)".format(format_time(time.time()-total_t0)))
 
         save_to_json(training_stats, os.path.join(save_path, "manual_log.json"))
