@@ -42,7 +42,7 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     output_attentions = False, # Whether the model returns attentions weights.
     output_hidden_states = False, # Whether the model returns all hidden-states.
     )
-
+    
     #print(model.parameters)
     
     #freeze all layers
@@ -70,16 +70,19 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
+        
+    model_path = os.path.join(os.getcwd(), "saved_models", "30.01", "trained_model.pt")
+    model.load_state_dict(torch.load(model_path, map_location = device)) #load trained model
 
     # Tell pytorch to run this model on the available device.
     model.to(device)
 
     optimizer = AdamW(model.parameters(),
-                    lr = 2e-5, # args.learning_rate - default is 5e-5, BERT authors recommend: 5e-5, 3e-5, 2e-5
+                    lr = 1e-5, # args.learning_rate - default is 5e-5, BERT authors recommend: 5e-5, 3e-5, 2e-5
                     eps = 1e-8 # args.adam_epsilon  - default is 1e-8.
                     )
     # Number of training epochs.
-    epochs = 4
+    epochs = 2
 
     total_steps = len(train_dataloader) * epochs
 
