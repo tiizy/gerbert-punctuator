@@ -4,12 +4,10 @@ import datetime
 import random
 from numpy.lib.function_base import average
 from transformers import BertForSequenceClassification, AdamW
-from transformers import BertTokenizer
 from transformers import get_linear_schedule_with_warmup
 import torch
 from torch.utils.tensorboard import SummaryWriter #SummaryWriter: key element to TensorBoard
 from src.preprocess.utils.json_handler import save_to_json
-#from src.train.model_wrapper import ModelWrapper
 import torchmetrics
 
 import os
@@ -25,6 +23,14 @@ def format_time(elapsed):
     
     # Format as hh:mm:ss
     return str(datetime.timedelta(seconds=elapsed_rounded))
+
+def remove_nans(nan_tensor, nan_counter):
+    
+    for id, value in enumerate(nan_tensor.isnan()):
+        if value == True:
+            nan_tensor[id] = 0
+            nan_counter[id] += 1
+    return [nan_tensor, nan_counter]
 
 
 def trainBertClassification(train_dataloader, validation_dataloader):
@@ -112,7 +118,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
     prec_class = torchmetrics.Precision(num_classes=9, average="none")
     prec.to(device)
     prec_class.to(device)
-    #Calculate the metric for each class separately, and average the metrics across classes (with equal weights for each class).
+    rec = torchmetrics.Recall(num_classes=9, average="macro")
+    rec_class = torchmetrics.Recall(num_classes=9, average="none")
+    rec.to(device)
+    rec_class.to(device)
     f1 = torchmetrics.F1(num_classes=9, average="macro")
     f1_class = torchmetrics.F1(num_classes=9, average="none")
     f1.to(device)
@@ -138,8 +147,16 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         total_tm_accuracy_class = 0
         total_tm_precision = 0
         total_tm_precision_class = 0
+        total_tm_recall = 0
+        total_tm_recall_class = 0
         total_tm_f1 = 0
         total_tm_f1_class = 0
+
+        dataloader_array = [len(train_dataloader)] * 9
+        acc_nan_counter = [0] * 9
+        prec_nan_counter = [0] * 9
+        rec_nan_counter = [0] * 9
+        f1_nan_counter = [0] * 9
 
         total_train_loss_t = 0
         total_tm_accuracy_t = 0
@@ -178,10 +195,6 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 writer.add_scalar("Average Torchmetrics precision per 1000 steps", avg_tm_precision, counter_t)
                 writer.add_scalar("Average Torchmetrics f1 per 1000 steps", avg_tm_f1, counter_t)
 
-                total_train_loss_t = 0
-                total_tm_accuracy_t = 0
-                total_tm_precision_t = 0
-                total_tm_f1_t = 0
                 
                 model.train()
 
@@ -213,8 +226,15 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             accuracy_class = acc_class(model_out.logits, b_punctuation_ids)
             precision = prec(model_out.logits, b_punctuation_ids)
             precision_class = prec_class(model_out.logits, b_punctuation_ids)
+            recall = rec(model_out.logits, b_punctuation_ids)
+            recall_class = rec_class(model_out.logits, b_punctuation_ids)
             f1_score = f1(model_out.logits, b_punctuation_ids)
             f1_for_class = f1_class(model_out.logits, b_punctuation_ids)
+            
+            accuracy_class, acc_nan_counter = remove_nans(accuracy_class, acc_nan_counter)
+            precision_class, prec_nan_counter = remove_nans(precision_class, prec_nan_counter)
+            recall_class, rec_nan_counter = remove_nans(recall_class, rec_nan_counter)
+            f1_for_class, f1_nan_counter = remove_nans(f1_for_class, f1_nan_counter)
 
             total_tm_accuracy += accuracy
             total_tm_accuracy_t += accuracy
@@ -222,6 +242,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             total_tm_precision += precision
             total_tm_precision_t += precision
             total_tm_precision_class += precision_class
+            total_tm_recall += recall
+            total_tm_recall_class +=rec_class
             total_tm_f1 += f1_score
             total_tm_f1_t += f1_score
             total_tm_f1_class += f1_for_class
@@ -233,13 +255,20 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             scheduler.step()
 
         # Calculate the average loss over all of the batches.
+        acc_class_denom = torch.tensor(dataloader_array) - torch.tensor(acc_nan_counter)
+        prec_class_denom = torch.tensor(dataloader_array) - torch.tensor(prec_nan_counter)
+        rec_class_denom = torch.tensor(dataloader_array) - torch.tensor(rec_nan_counter)
+        f1_class_denom = torch.tensor(dataloader_array) - torch.tensor(f1_nan_counter)
+
         avg_train_loss = total_train_loss / len(train_dataloader)
         avg_tm_accuracy = total_tm_accuracy / len(train_dataloader)
-        avg_tm_accuracy_class = total_tm_accuracy_class / len(train_dataloader)
+        avg_tm_accuracy_class = total_tm_accuracy_class / acc_class_denom
         avg_tm_precision = total_tm_precision / len(train_dataloader)
-        avg_tm_precision_class = total_tm_precision_class / len(train_dataloader)
+        avg_tm_precision_class = total_tm_precision_class / prec_class_denom
+        avg_tm_recall = total_tm_recall / len(train_dataloader)
+        avg_tm_recall_class = total_tm_recall_class / rec_class_denom
         avg_tm_f1 = total_tm_f1 / len(train_dataloader)
-        avg_tm_f1_class = total_tm_f1_class / len(train_dataloader)
+        avg_tm_f1_class = total_tm_f1_class / f1_class_denom
 
         writer.add_scalar("Average Training loss per epoch", avg_train_loss, epoch_i)
         writer.add_scalar("Average Torchmetrics accuracy per epoch", avg_tm_accuracy, epoch_i)
@@ -258,9 +287,10 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         acc_class.reset()
         prec.reset()
         prec_class.reset()
+        rec.reset()
+        rec_class.reset()
         f1.reset()
         f1_class.reset()
-            
 
         #measuring our performance on the validation set
 
@@ -281,6 +311,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         total_eval_loss = 0
         total_eval_tm_accuracy = 0
         total_eval_tm_precision = 0
+        total_eval_tm_recall = 0
+        total_eval_tm_f1 = 0
 
         for batch_id, batch in enumerate(validation_dataloader):
             
@@ -306,25 +338,36 @@ def trainBertClassification(train_dataloader, validation_dataloader):
             acc.to(device)
             prec = torchmetrics.Precision(num_classes=9, average="macro")
             prec.to(device)
+            rec = torchmetrics.Recall(num_classes=9, average="macro")
+            rec.to(device)
+            f1 = torchmetrics.F1(num_classes=9, average="macro")
+            f1.to(device)
 
             #log validation loss, accuracy, precision, f1 
             accuracy = acc(model_out.logits, b_punctuation_ids)
             precision = prec(model_out.logits, b_punctuation_ids)
+            recall = rec(model_out.logits, b_punctuation_ids)
+            f1_score = f1(model_out.logits, b_punctuation_ids)
             
             total_eval_tm_accuracy += accuracy
             total_eval_tm_precision += precision
-
+            total_eval_tm_recall += recall
+            total_eval_tm_f1 += f1
             
             global_val_step += 1
             if batch_id % 100 == 0 and not batch_id == 0:
                 writer.add_scalar("Validation loss", total_eval_loss / batch_id, global_step = global_val_step)
                 writer.add_scalar("Torchmetrics validation accuracy", total_eval_tm_accuracy / batch_id, global_step = global_val_step)
                 writer.add_scalar("Torchmetrics validation precision", total_eval_tm_precision / batch_id, global_step = global_val_step)
+                writer.add_scalar("Torchmetrics validation recall", total_eval_tm_recall / batch_id, global_step = global_val_step)
+                writer.add_scalar("Torchmetrics validation F1", total_eval_tm_f1 / batch_id, global_step = global_val_step)
 
         #calculating the average metrics over all of the batches
         avg_val_loss = total_eval_loss / len(validation_dataloader)
         avg_val_tm_acc = total_eval_tm_accuracy / len(validation_dataloader)
         avg_val_tm_prec = total_eval_tm_precision / len(validation_dataloader)
+        avg_val_tm_rec = total_eval_tm_recall / len(validation_dataloader)
+        avg_val_tm_f1 = total_eval_tm_f1 / len(validation_dataloader)
 
         writer.add_scalar("Average Validation loss per epoch", avg_val_loss, global_step = epoch_i)
         writer.add_scalar("Average Validation accuracy per epoch", avg_val_tm_acc, global_step = epoch_i)
@@ -348,15 +391,20 @@ def trainBertClassification(train_dataloader, validation_dataloader):
                 'torchmetrics Accuracy per class': str(avg_tm_accuracy_class),
                 'torchmetrics Precision': str(avg_tm_precision),
                 'torchmetrics Precision per class': str(avg_tm_precision_class),
+                'torchmetrics Recall': str(avg_tm_recall),
+                'torchmetrics Recall per class': str(avg_tm_recall_class),
                 'torchmetrics F1': str(avg_tm_f1),
                 'torchmetrics F1 per class': str(avg_tm_f1_class),
                 'tochmetrics valid. Accuracy': str(avg_val_tm_acc),
-                'tochmetrics valid. Precision': str(avg_val_tm_prec)
+                'tochmetrics valid. Precision': str(avg_val_tm_prec),
+                'tochmetrics valid. Recall': str(avg_val_tm_rec),
+                'tochmetrics valid. F1': str(avg_val_tm_f1)
             }
         )
         #reset torchmetrics
         acc.reset()
         prec.reset()
+        rec.reset()
         f1.reset()
         
         print("")
