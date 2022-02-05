@@ -272,13 +272,13 @@ def trainBertClassification(train_dataloader, validation_dataloader):
 
         avg_train_loss = total_train_loss / len(train_dataloader)
         avg_tm_accuracy = total_tm_accuracy / len(train_dataloader)
-        avg_tm_accuracy_class = total_tm_accuracy_class / acc_class_denom
+        avg_tm_accuracy_class = total_tm_accuracy_class / acc_class_denom.to(device)
         avg_tm_precision = total_tm_precision / len(train_dataloader)
-        avg_tm_precision_class = total_tm_precision_class / prec_class_denom
+        avg_tm_precision_class = total_tm_precision_class / prec_class_denom.to(device)
         avg_tm_recall = total_tm_recall / len(train_dataloader)
-        avg_tm_recall_class = total_tm_recall_class / rec_class_denom
+        avg_tm_recall_class = total_tm_recall_class / rec_class_denom.to(device)
         avg_tm_f1 = total_tm_f1 / len(train_dataloader)
-        avg_tm_f1_class = total_tm_f1_class / f1_class_denom
+        avg_tm_f1_class = total_tm_f1_class / f1_class_denom.to(device)
 
         # Measure how long this epoch took.
         training_time = format_time(time.time() - t0)
@@ -422,8 +422,8 @@ def trainBertClassification(train_dataloader, validation_dataloader):
         save_to_json(training_stats, os.path.join(save_path, "manual_log.json"))
 
 def main():
-    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "training_data.pt")
-    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "validation_data.pt")
+    train_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_training_data.pt")
+    val_path = os.path.join(os.getcwd(), "data", "processed", "dereko", "tensors", "datasets", "test_validation_data.pt")
     train_data = torch.load(train_path)
     val_data = torch.load(val_path)
     train_dataloader, validation_dataloader = load_data(train_data, val_data)
