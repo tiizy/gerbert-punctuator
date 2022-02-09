@@ -4,7 +4,7 @@ from flair.data import Sentence
 from src.punctuation_token_id import PUNCTUATION_TOKEN_ID
 
 
-model_path = "saved_models/flair-01-02/best-model.pt"
+model_path = "saved_models/flair_final_model.pt"
 model = TextClassifier.load(model_path)
 
 def flair_inference(sentence):
@@ -38,7 +38,5 @@ def flair_inference(sentence):
     result = re.sub(r'\s([\,\.\!\?\;\'\"\(\)\:\-](?:\s|$))', r'\1', result)
     return result
 
-sentence = "Der 28 jährige war in seinem Auto eingeklemmt und musste von der Feuerwehr befreit werden"
-#sentence = "Ich weiß es nicht sagte Mr Hawkins"
-#sentence = "Die Taliban bestätigen dass die US Truppen keine weiteren Aktionen unternommen haben und ihre Truppen abgezogen haben"
+sentence = "Die Taliban bestätigen dass die US Truppen keine weiteren Aktionen unternommen haben und ihre Truppen abgezogen haben"
 print(flair_inference(sentence))

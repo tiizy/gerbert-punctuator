@@ -1,7 +1,7 @@
 from flair.datasets import ClassificationCorpus
 from flair.models import TextClassifier
 
-model_path = "saved_models/flair-01-02/best-model.pt"
+model_path = "saved_models/flair_final_model.pt"
 model = TextClassifier.load(model_path)
 
 def flair_validation():
