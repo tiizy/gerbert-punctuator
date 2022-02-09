@@ -9,8 +9,7 @@ def count_punct_types(pairs: dict):
     for pair in pairs:
         list_of_punctuation.append(pair['y'])
     print(Counter(list_of_punctuation))
-    #{'None': 735829, '.': 50446, ',': 45852, '-': 16909, '"': 16114, ')': 3157, '(': 3153, ':': 2973, '?': 1417, "'": 480, '/': 452, '!': 281, '&': 232, ';': 24, ']': 17, '@': 4, '%': 4, '[': 2}
 
-path = os.path.join(PROCESSED_DATA_PATH, "classification_pairs_no_ID.json")
+path = os.path.join(PROCESSED_DATA_PATH, "pairs_final.json")
 content = open_json_file(path)
 count_punct_types(content)
