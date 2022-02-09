@@ -26,7 +26,7 @@ def convert_to_loader(test_sentence, list_y):
                 batch_size = 32)
     return loader, test_sentence
 
-model_path = os.path.join(os.getcwd(), "saved_models", "26.01", "trained_model.pt")
+model_path = os.path.join(os.getcwd(), "saved_models", "05.02", "trained_model.pt")
 if torch.cuda.is_available():    
     device = torch.device("cuda")
 else:
@@ -71,6 +71,7 @@ def main(test_sentences):
     list_x, list_y = prepare_test_sentence(test_sentences)
     total_sents = len(list_x) + 1
     test_sent = list_x[0]
+    id = 0
     for i in range(total_sents):
         result = apply_model(test_sent, list_y)
         if result:
@@ -87,7 +88,7 @@ def main(test_sentences):
     return test_sent
          
 
-test_sentences = ["Berlin Die Beauftragten haben einige Aufgaben ausgeführt wie z B das Ausführen ihrer Tätigkeiten"]
+test_sentences = ["Der 28 jährige war in seinem Auto eingeklemmt und musste von der Feuerwehr befreit werden"]
 result = main(test_sentences)
 print('')
 print(result)
