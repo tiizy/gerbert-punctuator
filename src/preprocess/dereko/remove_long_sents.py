@@ -4,7 +4,7 @@ import os
 from src.preprocess.dereko.process_raw import PROCESSED_DATA_PATH
 import matplotlib.pyplot as plt
 
-pairs = open_json_file(os.path.join(PROCESSED_DATA_PATH, "classification_pairs_filtered_tatoeba_cleaned.json"))
+pairs = open_json_file(os.path.join(PROCESSED_DATA_PATH, "pairs.json"))
 filtered_list = []
 
 allowed_sentence_length = 101
@@ -33,4 +33,4 @@ plt.savefig('plot.png')
 plt.close()
  """
 
-#save_to_json(filtered_list, os.path.join(PROCESSED_DATA_PATH, "classification_pairs_filtered_tatoeba_cleaned.json"))
+#save_to_json(filtered_list, os.path.join(PROCESSED_DATA_PATH, "pairs_final.json"))

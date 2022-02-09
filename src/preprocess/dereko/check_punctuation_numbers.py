@@ -4,7 +4,7 @@ from src.preprocess.utils.json_handler import open_json_file
 from collections import Counter
 from src.punctuation_token_id import PUNCTUATION_TOKEN_ID
 
-filename = "classification_pairs_filtered_tatoeba_cleaned.json"
+filename = "pairs_final.json"
 path = os.path.join(PROCESSED_DATA_PATH, filename)
 file = open_json_file(path)
 print("")

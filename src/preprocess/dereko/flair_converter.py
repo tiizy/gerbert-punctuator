@@ -2,7 +2,7 @@ from src.preprocess.utils.json_handler import open_json_file
 from random import shuffle
 
 path = "data/processed/dereko/"
-filename = "classification_pairs_filtered_tatoeba_cleaned.json"
+filename = "pairs_final.json"
 content = open_json_file(path + filename)
 
 
