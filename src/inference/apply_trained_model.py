@@ -26,7 +26,7 @@ def convert_to_loader(test_sentence, list_y):
                 batch_size = 32)
     return loader, test_sentence
 
-model_path = os.path.join(os.getcwd(), "saved_models", "05.02", "trained_model.pt")
+model_path = os.path.join(os.getcwd(), "saved_models", "bert_final_model.pt")
 if torch.cuda.is_available():    
     device = torch.device("cuda")
 else:
@@ -88,7 +88,7 @@ def main(test_sentences):
     return test_sent
          
 
-test_sentences = ["Der 28 jährige war in seinem Auto eingeklemmt und musste von der Feuerwehr befreit werden"]
+test_sentences = ["Dies ist ein Test"]
 result = main(test_sentences)
 print('')
 print(result)
