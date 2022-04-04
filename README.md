@@ -59,5 +59,5 @@ Trains the model with settings recommended by BERT authors for 4 epochs. Tensorb
 ## Inference
 After a successful training, the created model can be assessed using the described file.
 
-###apply_trained_model.py
+### apply_trained_model.py
 You can enter a single sentences (at the bottom of the file) in order to test the model.
