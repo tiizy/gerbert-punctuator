@@ -41,7 +41,7 @@ With this file you can check the number of sentences in each punctuation categor
 ### 6. add_specific_punct_JSON.py (optional)
 If you need to add more data (I trained the model using about a million sentences), you can use this file to do so.
 
-### 7. add_specific_punct_JSON.py (optional)
+### 7. remove_sentence_by_number.py (optional)
 In case the data is not balanced, you can specify a number of sentences of each punctuation category that should be deleted using this file.
 
 ### 8. save_tokenized_classification_pairs.py
