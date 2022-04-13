@@ -21,6 +21,10 @@ The project is created with following libraries, which also can be found in the 
 ## Setup
 I strongly recommend to use docker in order to download all existing libraries. This section contains step-by-step instructions for training the BERT-model on your data.
 
+In case you would like to use my data, the corresponding DVC file can be found in the /data folder. In this case the preprocessing should be continued from step 4.
+
+In the case that you would like to use my trained model, skipping the preprocessing and training, the corresponding DVC file is in /saved_models.
+
 ## Preprocessing the data
 
 ### 1. Data
