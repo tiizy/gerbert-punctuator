@@ -1,0 +1,4 @@
+outs:
+- md5: 41c0ebbc9ae41611755aaa3bf1cf5c89
+  size: 436437165
+  path: bert_final_model.pt
