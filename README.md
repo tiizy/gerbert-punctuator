@@ -57,6 +57,10 @@ Splits the data into training (80% of data) and validation (20%) sets. Outputs t
 ## Training
 A CUDA-capable GPU is needed in order to train the model in reasonable period of time. Using a 2070 Ti each epoch took about 90 minutes.
 
+The following images show the loss and F1 diagrams of my training process:
+![Training loss](https://github.com/tiizy/gerbert-punctuator/blob/main/readme_images/train_loss.png)
+![Training F1](https://github.com/tiizy/gerbert-punctuator/blob/main/readme_images/train_f1.png)
+
 ### train_bert_classification.py
 Trains the model with settings recommended by BERT authors for 4 epochs. Tensorboard and Torchmetrics is used to log the results, additionally, a manual log is created.
 
