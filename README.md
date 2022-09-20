@@ -28,7 +28,7 @@ In the case that you would like to use my trained model, skipping the preprocess
 ## Preprocessing the data
 
 ### 1. Data
-Your training data should be in the .txt-format, containing full German sentenceы with correct punctuation.
+Your training data should be in the .txt-format, containing full German sentences with correct punctuation.
 
 ### 2. process_raw.py
 Converts the data into a file with just one sentence per line, removing very short (< 5 words) sentences. A set of Regular Expressions cleans up the sentences. Outputs a .txt-file.
